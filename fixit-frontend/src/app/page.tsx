@@ -1,0 +1,519 @@
+"use client";
+import Link from "next/link";
+import Image from "next/image";
+import { useEffect, useRef, useState } from "react";
+import {
+  Wrench,
+  Calendar,
+  BarChart3,
+  Shield,
+  Clock,
+  Users,
+  ChevronRight,
+  Zap,
+  CheckCircle2,
+  Star,
+  Phone,
+  MapPin,
+  Mail,
+  ArrowRight,
+  Settings,
+  Fuel,
+  Wind,
+  Gauge,
+  Menu,
+  X,
+  Sun,
+  Moon,
+} from "lucide-react";
+
+export default function HomePage() {
+  const [scrolled, setScrolled] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [activeTestimonial, setActiveTestimonial] = useState(0);
+  const statsRef = useRef<HTMLDivElement>(null);
+  const [statsVisible, setStatsVisible] = useState(false);
+  const [isLight, setIsLight] = useState(false);
+
+  useEffect(() => {
+    const saved = localStorage.getItem("theme") === "light";
+    setIsLight(saved);
+    if (saved) {
+      document.body.classList.add("light");
+    } else {
+      document.body.classList.remove("light");
+    }
+  }, []);
+
+  const toggleTheme = () => {
+    const newVal = !isLight;
+    setIsLight(newVal);
+    if (newVal) {
+      document.body.classList.add("light");
+      localStorage.setItem("theme", "light");
+    } else {
+      document.body.classList.remove("light");
+      localStorage.setItem("theme", "dark");
+    }
+  };
+
+  useEffect(() => {
+    const handleScroll = () => setScrolled(window.scrollY > 50);
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting) setStatsVisible(true); },
+      { threshold: 0.3 }
+    );
+    if (statsRef.current) observer.observe(statsRef.current);
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    const t = setInterval(() => {
+      setActiveTestimonial((p) => (p + 1) % 3);
+    }, 4000);
+    return () => clearInterval(t);
+  }, []);
+
+  const services = [
+    { icon: <Settings size={32} strokeWidth={1.5} />, title: "Servis Mesin", desc: "Perawatan rutin dan perbaikan mesin kendaraan oleh teknisi bersertifikat.", color: "#3b82f6" },
+    { icon: <Fuel size={32} strokeWidth={1.5} />, title: "Ganti Oli & Filter", desc: "Penggantian oli mesin, transmisi, dan filter udara berkualitas tinggi.", color: "#f59e0b" },
+    { icon: <Shield size={32} strokeWidth={1.5} />, title: "Rem & Suspensi", desc: "Pemeriksaan dan penggantian sistem pengereman serta suspensi kendaraan.", color: "#10b981" },
+    { icon: <Zap size={32} strokeWidth={1.5} />, title: "Kelistrikan", desc: "Diagnosa dan perbaikan sistem kelistrikan, ECU, dan elektronik modern.", color: "#8b5cf6" },
+    { icon: <Wind size={32} strokeWidth={1.5} />, title: "AC & Pendingin", desc: "Servis AC, isi freon, dan perawatan sistem pendingin kendaraan.", color: "#ef4444" },
+    { icon: <Gauge size={32} strokeWidth={1.5} />, title: "Tune-Up & Diagnosa", desc: "Tune-up lengkap dengan alat diagnostik digital terkini.", color: "#06b6d4" },
+  ];
+
+  const testimonials = [
+    { name: "Ahmad Fauzi", role: "Pemilik Toyota Avanza", rating: 5, text: "Pelayanan sangat cepat dan profesional! Mekaniknya ramah dan transparan soal biaya. Mobil saya selesai lebih cepat dari jadwal." },
+    { name: "Siti Rahayu", role: "Pengguna Honda Jazz", rating: 5, text: "Booking online sangat mudah. Bisa memilih mekanik favorit dan track progress real-time. Pengalaman servis terbaik yang pernah saya rasakan!" },
+    { name: "Budi Santoso", role: "Fleet Manager PT. Maju", rating: 5, text: "FixIt membantu manajemen armada kantor kami menjadi jauh lebih efisien. Invoice digital dan laporan servis sangat membantu administrasi." },
+  ];
+
+  return (
+    <div className="lp-wrapper">
+      {/* =================== NAVBAR =================== */}
+      <nav className={`lp-nav ${scrolled ? "lp-nav--scrolled" : ""}`}>
+        <div className="lp-nav__inner">
+          <Link href="/" className="lp-logo">
+            <div className="lp-logo__icon">
+              <Wrench size={20} strokeWidth={2.5} />
+            </div>
+            FixIt
+          </Link>
+
+          {/* Desktop Nav */}
+          <div className="lp-nav__links">
+            <a href="#services">Layanan</a>
+            <a href="#about">Tentang</a>
+            <a href="#team">Tim</a>
+            <a href="#booking">Booking</a>
+          </div>
+
+          <div className="lp-nav__actions">
+            <button 
+              onClick={toggleTheme} 
+              className="lp-btn lp-btn--ghost" 
+              style={{ padding: "10px", borderRadius: "10px", display: "flex", alignItems: "center", justifyContent: "center" }}
+              aria-label="Toggle Theme"
+            >
+              {isLight ? <Moon size={18} /> : <Sun size={18} />}
+            </button>
+            <Link href="/login" className="lp-btn lp-btn--ghost">Masuk</Link>
+            <Link href="/register" className="lp-btn lp-btn--primary">
+              Daftar Gratis <ArrowRight size={14} />
+            </Link>
+          </div>
+
+          <button className="lp-hamburger" onClick={() => setMobileOpen(!mobileOpen)} aria-label="Menu">
+            {mobileOpen ? <X size={22} /> : <Menu size={22} />}
+          </button>
+        </div>
+
+        {/* Mobile Nav */}
+        {mobileOpen && (
+          <div className="lp-mobile-menu">
+            <a href="#services" onClick={() => setMobileOpen(false)}>Layanan</a>
+            <a href="#about" onClick={() => setMobileOpen(false)}>Tentang</a>
+            <a href="#team" onClick={() => setMobileOpen(false)}>Tim</a>
+            <a href="#booking" onClick={() => setMobileOpen(false)}>Booking</a>
+            <button 
+              onClick={toggleTheme} 
+              className="lp-btn lp-btn--ghost" 
+              style={{ width: "100%", justifyContent: "center", gap: "8px", margin: "4px 0" }}
+            >
+              {isLight ? <><Moon size={16} /> Mode Gelap</> : <><Sun size={16} /> Mode Terang</>}
+            </button>
+            <Link href="/login" className="lp-btn lp-btn--ghost" style={{ width: "100%", justifyContent: "center" }}>Masuk</Link>
+            <Link href="/register" className="lp-btn lp-btn--primary" style={{ width: "100%", justifyContent: "center" }}>Daftar Gratis</Link>
+          </div>
+        )}
+      </nav>
+
+      {/* =================== HERO =================== */}
+      <section className="lp-hero">
+        {/* BG particles */}
+        <div className="lp-hero__particles" aria-hidden>
+          {[...Array(20)].map((_, i) => (
+            <span key={i} className="particle" style={{ "--i": i } as React.CSSProperties} />
+          ))}
+        </div>
+
+        <div className="lp-hero__inner">
+          {/* Left */}
+          <div className="lp-hero__text">
+            <div className="lp-badge">
+              <Zap size={13} fill="var(--lp-accent)" />
+              Bengkel Digital Terpercaya #1
+            </div>
+            <h1>
+              Servis Kendaraan<br />
+              <span className="lp-gradient-text">Lebih Mudah &amp;</span><br />
+              <span className="lp-outline-text">Lebih Cepat.</span>
+            </h1>
+            <p>
+              Platform booking servis kendaraan online pertama di Indonesia. Pilih mekanik spesialis, pantau progres real-time, dan terima invoice digital — semua dalam satu genggaman.
+            </p>
+            <ul className="lp-hero__checks">
+              {["Booking online 24/7", "Teknisi bersertifikat", "Tracking real-time", "Garansi pekerjaan"].map((c) => (
+                <li key={c}><CheckCircle2 size={16} color="var(--lp-accent)" /> {c}</li>
+              ))}
+            </ul>
+            <div className="lp-hero__ctas">
+              <Link href="/register" className="lp-btn lp-btn--primary lp-btn--lg">
+                Mulai Booking Sekarang <ChevronRight size={18} />
+              </Link>
+              <Link href="/login" className="lp-btn lp-btn--outline lp-btn--lg">
+                Masuk Dasbor
+              </Link>
+            </div>
+            <div className="lp-hero__trust">
+              <div className="lp-stars">
+                {[...Array(5)].map((_, i) => <Star key={i} size={14} fill="#f59e0b" color="#f59e0b" />)}
+              </div>
+              <span><strong>4.9/5</strong> dari 2.800+ ulasan pelanggan</span>
+            </div>
+          </div>
+
+          {/* Right image */}
+          <div className="lp-hero__image">
+            <div className="lp-hero__img-wrap">
+              <Image
+                src="/header.jpeg"
+                alt="Foto Kelompok FixIt"
+                fill
+                style={{ objectFit: "cover", objectPosition: "center top" }}
+                unoptimized
+              />
+              <div className="lp-hero__img-overlay" />
+            </div>
+            {/* Floating cards */}
+            <div className="lp-float-card lp-float-card--top lp-float-card--primary">
+              <div className="lp-float-card__icon">
+                <Calendar size={20} strokeWidth={2.5} />
+              </div>
+              <div>
+                <div className="lp-float-card__title">Booking Berhasil!</div>
+                <div className="lp-float-card__sub">Toyota Avanza · Servis Rutin</div>
+              </div>
+            </div>
+            <div className="lp-float-card lp-float-card--bottom lp-float-card--success">
+              <div className="lp-float-card__icon">
+                <CheckCircle2 size={20} strokeWidth={2.5} />
+              </div>
+              <div>
+                <div className="lp-float-card__title">Selesai Lebih Awal</div>
+                <div className="lp-float-card__sub">⭐ 5.0 · Pelanggan Puas</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* =================== STATS =================== */}
+      <section className="lp-stats" ref={statsRef}>
+        <div className="lp-stats__inner">
+          {[
+            { num: "12+", label: "Tahun Pengalaman" },
+            { num: "50+", label: "Mekanik Profesional" },
+            { num: "15K+", label: "Kendaraan Ditangani" },
+            { num: "98%", label: "Kepuasan Pelanggan" },
+          ].map((s) => (
+            <div key={s.label} className={`lp-stats__item ${statsVisible ? "lp-stats__item--visible" : ""}`}>
+              <div className="lp-stats__num">{s.num}</div>
+              <div className="lp-stats__label">{s.label}</div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* =================== SERVICES =================== */}
+      <section id="services" className="lp-section">
+        <div className="lp-container">
+          <div className="lp-section__header">
+            <div className="lp-badge">Layanan Kami</div>
+            <h2>Semua Kebutuhan <span className="lp-gradient-text">Kendaraan Anda</span></h2>
+            <p>Dari servis rutin hingga perbaikan berat, tim teknisi bersertifikat kami siap menangani semua jenis kendaraan dengan peralatan modern.</p>
+          </div>
+          <div className="lp-services__grid">
+            {services.map((s, i) => (
+              <Link key={i} href="/register" className="lp-service-card" style={{ "--card-color": s.color } as React.CSSProperties}>
+                <div className="lp-service-card__icon">{s.icon}</div>
+                <h3>{s.title}</h3>
+                <p>{s.desc}</p>
+                <div className="lp-service-card__arrow"><ArrowRight size={16} /></div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* =================== ABOUT / PARALLAX =================== */}
+      <section id="about" className="lp-about">
+        <div className="lp-about__bg">
+          <Image src="/service_brake.png" alt="Bengkel FixIt" fill style={{ objectFit: "cover" }} />
+          <div className="lp-about__overlay" />
+        </div>
+        <div className="lp-container lp-about__inner">
+          <div className="lp-about__content">
+            <div className="lp-badge">Tentang FixIt</div>
+            <h2>Mengapa Memilih <span className="lp-gradient-text">FixIt?</span></h2>
+            <p>Kami menggabungkan keahlian mekanik berpengalaman dengan teknologi digital terkini untuk memberikan pengalaman servis kendaraan yang transparan, cepat, dan terpercaya.</p>
+            <ul className="lp-about__list">
+              {[
+                "Teknisi bersertifikat dengan pengalaman 10+ tahun",
+                "Spare part original bergaransi resmi",
+                "Sistem tracking & notifikasi real-time",
+                "Invoice digital dan riwayat servis tersimpan",
+                "Harga transparan tanpa biaya tersembunyi",
+              ].map((item) => (
+                <li key={item}>
+                  <CheckCircle2 size={18} color="var(--lp-accent)" />
+                  {item}
+                </li>
+              ))}
+            </ul>
+            <Link href="/register" className="lp-btn lp-btn--primary lp-btn--lg">
+              Pelajari Lebih Lanjut <ArrowRight size={16} />
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* =================== HOW IT WORKS =================== */}
+      <section className="lp-section lp-hiw">
+        <div className="lp-container">
+          <div className="lp-section__header">
+            <div className="lp-badge">Cara Kerja</div>
+            <h2>Servis Kendaraan dalam <span className="lp-gradient-text">4 Langkah</span></h2>
+            <p>Proses yang mudah dan transparan dari booking hingga kendaraan siap dikembalikan.</p>
+          </div>
+          <div className="lp-hiw__steps">
+            {[
+              { num: "01", title: "Registrasi Akun", desc: "Daftar gratis dan lengkapi profil kendaraan Anda dalam hitungan menit.", icon: <Users size={24} /> },
+              { num: "02", title: "Pilih Layanan", desc: "Tentukan jenis servis, pilih mekanik spesialis, dan jadwalkan waktu yang sesuai.", icon: <Calendar size={24} /> },
+              { num: "03", title: "Pengerjaan", desc: "Mekanik profesional menangani kendaraan dengan pantauan status real-time.", icon: <Wrench size={24} /> },
+              { num: "04", title: "Selesai & Invoice", desc: "Terima notifikasi selesai, bayar, dan download invoice digital Anda.", icon: <BarChart3 size={24} /> },
+            ].map((s, i) => (
+              <div key={i} className="lp-hiw__step">
+                <div className="lp-hiw__num">{s.num}</div>
+                <div className="lp-hiw__icon">{s.icon}</div>
+                <h3>{s.title}</h3>
+                <p>{s.desc}</p>
+                {i < 3 && <div className="lp-hiw__connector" />}
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* =================== TEAM =================== */}
+      <section id="team" className="lp-section lp-team">
+        <div className="lp-container">
+          <div className="lp-section__header">
+            <div className="lp-badge">Tim Kami</div>
+            <h2>Mekanik <span className="lp-gradient-text">Profesional</span> Kami</h2>
+            <p>Didukung oleh teknisi berpengalaman yang berdedikasi untuk memberikan yang terbaik bagi kendaraan Anda.</p>
+          </div>
+          <div className="lp-team__grid">
+            {[
+              { name: "Sarham San", role: "Kepala Mekanik", exp: "Tim FixIt", spec: "Mesin & Transmisi", img: "/personel_1.jpeg", rating: 5.0 },
+              { name: "Muh. Fathir Syabhan", role: "Mekanik Senior", exp: "Tim FixIt", spec: "Multi-Spesialis", img: "/personel_2.jpeg", rating: 5.0 },
+              { name: "Muh. Anugrah Ashary", role: "Spesialis Kelistrikan", exp: "Tim FixIt", spec: "ECU & Elektronik", img: "/personel_3.jpeg", rating: 5.0 },
+              { name: "Jonas Baka", role: "Spesialis Kaki-Kaki", exp: "Tim FixIt", spec: "Rem & Suspensi", img: "/personel_4.jpeg", rating: 5.0 },
+            ].map((m, i) => (
+              <div key={i} className="lp-team-card">
+                <div className="lp-team-card__img">
+                  <Image src={m.img} alt={m.name} fill style={{ objectFit: "cover", objectPosition: "center" }} />
+                  <div className="lp-team-card__rating">
+                    <Star size={12} fill="#f59e0b" color="#f59e0b" /> {m.rating}
+                  </div>
+                </div>
+                <div className="lp-team-card__info">
+                  <h3>{m.name}</h3>
+                  <div className="lp-team-card__role">{m.role}</div>
+                  <div className="lp-team-card__tags">
+                    <span>{m.exp}</span>
+                    <span>{m.spec}</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* =================== BOOKING CTA =================== */}
+      <section id="booking" className="lp-booking">
+        <div className="lp-booking__bg">
+          <Image src="/car_service.png" alt="Booking servis kendaraan" fill style={{ objectFit: "cover" }} />
+          <div className="lp-booking__overlay" />
+        </div>
+        <div className="lp-container lp-booking__inner">
+          <div className="lp-booking__text">
+            <div className="lp-badge lp-badge--light">Buat Janji Sekarang</div>
+            <h2>Siap Servis Kendaraan Anda?</h2>
+            <p>Daftarkan kendaraan Anda dan dapatkan estimasi harga gratis. Tim kami siap melayani 7 hari seminggu.</p>
+            <div className="lp-booking__contacts">
+              <div className="lp-contact-item">
+                <Phone size={16} /> <span>+62 812-3456-7890</span>
+              </div>
+              <div className="lp-contact-item">
+                <MapPin size={16} /> <span>Jl. Bengkel Maju No. 88, Jakarta</span>
+              </div>
+              <div className="lp-contact-item">
+                <Mail size={16} /> <span>hello@fixit.id</span>
+              </div>
+            </div>
+          </div>
+          <div className="lp-booking__form">
+            <h3>Booking Cepat</h3>
+            <div className="lp-form-field">
+              <label>Nama Lengkap</label>
+              <input type="text" placeholder="Nama Anda" />
+            </div>
+            <div className="lp-form-field">
+              <label>No. Telepon</label>
+              <input type="tel" placeholder="+62 xxx xxxx xxxx" />
+            </div>
+            <div className="lp-form-row">
+              <div className="lp-form-field">
+                <label>Jenis Kendaraan</label>
+                <select>
+                  <option>Pilih Kendaraan</option>
+                  <option>Mobil</option>
+                  <option>Motor</option>
+                  <option>Truk</option>
+                </select>
+              </div>
+              <div className="lp-form-field">
+                <label>Jenis Servis</label>
+                <select>
+                  <option>Pilih Servis</option>
+                  <option>Servis Rutin</option>
+                  <option>Ganti Oli</option>
+                  <option>Rem & Suspensi</option>
+                  <option>Tune-Up</option>
+                </select>
+              </div>
+            </div>
+            <Link href="/register" className="lp-btn lp-btn--primary" style={{ width: "100%", justifyContent: "center", padding: "14px" }}>
+              Buat Janji Sekarang <ArrowRight size={16} />
+            </Link>
+            <p className="lp-booking__note">* Konfirmasi akan dikirim via WhatsApp dalam 5 menit</p>
+          </div>
+        </div>
+      </section>
+
+      {/* =================== TESTIMONIALS =================== */}
+      <section className="lp-section lp-testimonials">
+        <div className="lp-container">
+          <div className="lp-section__header">
+            <div className="lp-badge">Testimonial</div>
+            <h2>Kata Mereka tentang <span className="lp-gradient-text">FixIt</span></h2>
+          </div>
+          <div className="lp-testi__grid">
+            {testimonials.map((t, i) => (
+              <div key={i} className={`lp-testi-card ${activeTestimonial === i ? "lp-testi-card--active" : ""}`}>
+                <div className="lp-testi-card__stars">
+                  {[...Array(t.rating)].map((_, j) => <Star key={j} size={14} fill="#f59e0b" color="#f59e0b" />)}
+                </div>
+                <p>&ldquo;{t.text}&rdquo;</p>
+                <div className="lp-testi-card__author">
+                  <div className="lp-testi-card__avatar">{t.name[0]}</div>
+                  <div>
+                    <div className="lp-testi-card__name">{t.name}</div>
+                    <div className="lp-testi-card__role">{t.role}</div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="lp-testi__dots">
+            {testimonials.map((_, i) => (
+              <button
+                key={i}
+                className={`lp-testi__dot ${activeTestimonial === i ? "lp-testi__dot--active" : ""}`}
+                onClick={() => setActiveTestimonial(i)}
+                aria-label={`Testimonial ${i + 1}`}
+              />
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* =================== FOOTER =================== */}
+      <footer className="lp-footer">
+        <div className="lp-container">
+          <div className="lp-footer__top">
+            <div className="lp-footer__brand">
+              <div className="lp-logo">
+                <div className="lp-logo__icon"><Wrench size={18} strokeWidth={2.5} /></div>
+                FixIt
+              </div>
+              <p>Platform manajemen bengkel dan pemesanan servis kendaraan online terpercaya di Indonesia.</p>
+              <div className="lp-footer__socials">
+                {["FB", "IG", "TW", "YT"].map((s) => (
+                  <a key={s} href="#" className="lp-social-btn">{s}</a>
+                ))}
+              </div>
+            </div>
+            <div className="lp-footer__col">
+              <h4>Layanan</h4>
+              <a href="#">Servis Mesin</a>
+              <a href="#">Ganti Oli</a>
+              <a href="#">Rem & Suspensi</a>
+              <a href="#">AC Kendaraan</a>
+              <a href="#">Tune-Up</a>
+            </div>
+            <div className="lp-footer__col">
+              <h4>Platform</h4>
+              <Link href="/register">Daftar Pelanggan</Link>
+              <Link href="/login">Login</Link>
+              <a href="#">Jadilah Mitra</a>
+              <a href="#">API Docs</a>
+            </div>
+            <div className="lp-footer__col">
+              <h4>Kontak</h4>
+              <a href="tel:+6281234567890">+62 812-3456-7890</a>
+              <a href="mailto:hello@fixit.id">hello@fixit.id</a>
+              <a href="#">Jl. Bengkel Maju No. 88</a>
+              <a href="#">Jakarta Selatan, 12345</a>
+            </div>
+          </div>
+          <div className="lp-footer__bottom">
+            <p>© 2026 FixIt Platform. Tugas Kelompok Web Lanjutan.</p>
+            <div className="lp-footer__links">
+              <a href="#">Kebijakan Privasi</a>
+              <a href="#">Syarat &amp; Ketentuan</a>
+            </div>
+          </div>
+        </div>
+      </footer>
+    </div>
+  );
+}

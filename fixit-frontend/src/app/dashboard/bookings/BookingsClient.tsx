@@ -1,0 +1,180 @@
+"use client";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { updateBookingStatus } from "@/actions/bookings";
+import { generateInvoice } from "@/actions/admin";
+import { CalendarCheck, Search, Eye, Check, Play, XCircle, FileText, Plus, X } from "lucide-react";
+import { NotificationProvider, useNotification } from "@/components/NotificationContext";
+
+export default function BookingsClient({ bookings, mechanics, spareparts }: { bookings: any[]; mechanics: any[]; spareparts: any[] }) {
+  const router = useRouter();
+  const [filter, setFilter] = useState("ALL");
+  const [search, setSearch] = useState("");
+  const [detail, setDetail] = useState<any>(null);
+  const { showToast, showConfirm } = useNotification();
+
+  // Sync modal view when props change (after router.refresh)
+  useEffect(() => {
+    if (detail) {
+      const updated = bookings.find(b => b.id === detail.id);
+      if (updated) {
+        setDetail(updated);
+      }
+    }
+  }, [bookings]);
+
+
+
+  const filtered = bookings.filter(b => {
+    if (filter !== "ALL" && b.status !== filter) return false;
+    if (search && !b.bookingCode.toLowerCase().includes(search.toLowerCase()) && !b.user.name.toLowerCase().includes(search.toLowerCase())) return false;
+    return true;
+  });
+
+  const statusActions: Record<string, { next: string; label: string; icon: any }[]> = {
+    PENDING: [{ next: "CONFIRMED", label: "Konfirmasi", icon: <Check size={14} /> }, { next: "CANCELLED", label: "Tolak", icon: <XCircle size={14} /> }],
+    CONFIRMED: [{ next: "IN_PROGRESS", label: "Mulai Kerjakan", icon: <Play size={14} /> }],
+    IN_PROGRESS: [{ next: "COMPLETED", label: "Selesai", icon: <Check size={14} /> }],
+  };
+
+  return (
+    <>
+      <div className="page-header">
+        <div><h1><CalendarCheck size={24} style={{ display: "inline", marginRight: "8px" }} />Kelola Booking</h1><p>{bookings.length} total booking</p></div>
+      </div>
+      <div className="flex gap-3 mb-4" style={{ flexWrap: "wrap" }}>
+        {["ALL", "PENDING", "CONFIRMED", "IN_PROGRESS", "COMPLETED", "CANCELLED"].map(s => (
+          <button key={s} className={`btn btn-sm ${filter === s ? "btn-primary" : "btn-secondary"}`} onClick={() => setFilter(s)}>
+            {s === "ALL" ? "Semua" : s.replace("_", " ")} {s !== "ALL" && `(${bookings.filter(b => b.status === s).length})`}
+          </button>
+        ))}
+      </div>
+      <div className="mb-4" style={{ position: "relative", maxWidth: "400px" }}>
+        <Search size={16} style={{ position: "absolute", left: "12px", top: "50%", transform: "translateY(-50%)", color: "var(--text-muted)" }} />
+        <input className="form-input" placeholder="Cari kode booking atau nama..." value={search} onChange={e => setSearch(e.target.value)} style={{ paddingLeft: "36px" }} />
+      </div>
+      <div className="table-wrapper">
+        <table className="table">
+          <thead><tr><th>Kode</th><th>Pelanggan</th><th>Kendaraan</th><th>Tanggal</th><th>Mekanik</th><th>Status</th><th>Aksi</th></tr></thead>
+          <tbody>
+            {filtered.map(b => (
+              <tr key={b.id}>
+                <td style={{ fontWeight: 600, color: "var(--accent)" }}>{b.bookingCode}</td>
+                <td>{b.user.name}</td>
+                <td>{b.vehicle.brand} {b.vehicle.model}<br /><span style={{ fontSize: "12px", color: "var(--text-muted)" }}>{b.vehicle.licensePlate}</span></td>
+                <td>{new Date(b.bookingDate).toLocaleDateString("id-ID")}<br /><span style={{ fontSize: "12px", color: "var(--text-muted)" }}>{b.timeSlot}</span></td>
+                <td>{b.mechanic?.name || <span style={{ color: "var(--text-muted)" }}>Belum ditugaskan</span>}</td>
+                <td><span className={`badge badge-${b.status === "PENDING" ? "pending" : b.status === "CONFIRMED" ? "confirmed" : b.status === "IN_PROGRESS" ? "progress" : b.status === "COMPLETED" ? "completed" : "cancelled"}`}>{b.status}</span></td>
+                <td>
+                  <div className="flex gap-2">
+                    <button className="btn btn-secondary btn-sm" onClick={() => setDetail(b)}><Eye size={14} /></button>
+                    {statusActions[b.status]?.map(action => (
+                      <button key={action.next} className={`btn btn-sm ${action.next === "CANCELLED" ? "btn-danger" : "btn-primary"}`}
+                        onClick={async () => {
+                          let mechId = b.mechanicId;
+                          if (action.next === "CONFIRMED" && !mechId && mechanics.length > 0) mechId = mechanics[0].id;
+                          await updateBookingStatus(b.id, action.next, mechId || undefined);
+                          router.refresh();
+                        }}>
+                        {action.icon} {action.label}
+                      </button>
+                    ))}
+                    {b.status === "COMPLETED" && !b.invoice && (
+                      <button className="btn btn-success btn-sm" onClick={async () => {
+                        await generateInvoice(b.id);
+                        router.refresh();
+                      }}><FileText size={14} /> Invoice</button>
+                    )}
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      {detail && (
+        <div className="modal-overlay" onClick={() => setDetail(null)}>
+          <div className="modal modal-lg" onClick={e => e.stopPropagation()}>
+            <button className="modal-close" onClick={() => setDetail(null)} aria-label="Close modal"><X size={18} /></button>
+            <h2>Detail Booking: {detail.bookingCode}</h2>
+            <div className="detail-grid mb-6">
+              <div className="detail-item"><div className="label">Pelanggan</div><div className="value">{detail.user.name}</div></div>
+              <div className="detail-item"><div className="label">Kendaraan</div><div className="value">{detail.vehicle.brand} {detail.vehicle.model} ({detail.vehicle.licensePlate})</div></div>
+              <div className="detail-item"><div className="label">Tanggal</div><div className="value">{new Date(detail.bookingDate).toLocaleDateString("id-ID")} - {detail.timeSlot}</div></div>
+              <div className="detail-item">
+                <div className="label">Mekanik</div>
+                <div className="value">
+                  {detail.status === "COMPLETED" || detail.status === "CANCELLED" ? (
+                    detail.mechanic?.name || "Belum ditugaskan"
+                  ) : (
+                    <select
+                      className="form-input mt-2"
+                      style={{ padding: "6px 12px", fontSize: "13px" }}
+                      value={detail.mechanicId || ""}
+                      onChange={async (e) => {
+                        const val = e.target.value;
+                        const newMechId = val ? Number(val) : undefined;
+                        await updateBookingStatus(detail.id, detail.status, newMechId);
+                        showToast("Mekanik berhasil diperbarui", "success");
+                        router.refresh();
+                      }}
+                    >
+                      <option value="">Pilih Mekanik...</option>
+                      {(() => {
+                        const allOptions = [...mechanics];
+                        if (detail.mechanic && !allOptions.some(m => m.id === detail.mechanic.id)) {
+                          allOptions.push(detail.mechanic);
+                        }
+                        return allOptions.map(m => (
+                          <option key={m.id} value={m.id}>{m.name} ({m.specialization || "Umum"})</option>
+                        ));
+                      })()}
+                    </select>
+                  )}
+                </div>
+              </div>
+              <div className="detail-item"><div className="label">Status</div><div className="value"><span className={`badge badge-${detail.status === "PENDING" ? "pending" : detail.status === "CONFIRMED" ? "confirmed" : detail.status === "IN_PROGRESS" ? "progress" : detail.status === "COMPLETED" ? "completed" : "cancelled"}`}>{detail.status}</span></div></div>
+              {detail.notes && <div className="detail-item"><div className="label">Catatan</div><div className="value">{detail.notes}</div></div>}
+            </div>
+            <h3 style={{ marginBottom: "12px", fontSize: "15px" }}>Layanan Dipilih</h3>
+            <div className="table-wrapper mb-4">
+              <table className="table">
+                <thead><tr><th>Layanan</th><th>Harga</th></tr></thead>
+                <tbody>
+                  {detail.bookingServices?.map((bs: any) => (
+                    <tr key={bs.id}><td>{bs.service.name}</td><td>Rp {bs.priceAtBooking.toLocaleString("id-ID")}</td></tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {detail.serviceLogs && detail.serviceLogs.length > 0 && (
+              <>
+                <h3 style={{ marginBottom: "12px", fontSize: "15px" }}>Riwayat Pengerjaan</h3>
+                <div className="table-wrapper mb-4">
+                  <table className="table">
+                    <thead><tr><th>Waktu</th><th>Deskripsi</th><th>Part</th><th>Status</th></tr></thead>
+                    <tbody>
+                      {detail.serviceLogs.map((log: any) => (
+                        <tr key={log.id}>
+                          <td style={{fontSize: "12px"}}>{new Date(log.logDate).toLocaleString("id-ID")}</td>
+                          <td>{log.description}</td>
+                          <td>{log.sparepart ? `${log.sparepart.name} (x${log.sparepartQty})` : "-"}</td>
+                          <td><span className={`badge badge-${log.status === "DONE" ? "completed" : "progress"}`}>{log.status}</span></td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </>
+            )}
+
+
+
+            <button className="btn btn-secondary" onClick={() => setDetail(null)}>Tutup</button>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
