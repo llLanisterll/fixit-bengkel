@@ -19,6 +19,8 @@ class User(UserBase):
     id: int
     role: str
     createdAt: datetime
+    vehicles: List['Vehicle'] = []
+    bookings: List['Booking'] = []
 
     class Config:
         from_attributes = True
@@ -95,11 +97,27 @@ class VehicleCreate(VehicleBase):
 class Vehicle(VehicleBase):
     id: int
     createdAt: datetime
+    user: Optional['User'] = None
+
+    class Config:
+        from_attributes = True
+
+
+class BookingServiceBase(BaseModel):
+    bookingId: int
+    serviceId: int
+    priceAtBooking: float
+    quantity: Optional[int] = 1
+
+class BookingService(BookingServiceBase):
+    id: int
+    service: Optional['Service'] = None
 
     class Config:
         from_attributes = True
 
 # --- Booking ---
+
 class BookingBase(BaseModel):
     userId: int
     vehicleId: int
@@ -110,13 +128,18 @@ class BookingBase(BaseModel):
     notes: Optional[str] = None
 
 class BookingCreate(BookingBase):
-    pass
+    serviceIds: List[int] = []
 
 class Booking(BookingBase):
     id: int
     bookingCode: str
     createdAt: datetime
     updatedAt: datetime
+    user: Optional['User'] = None
+    vehicle: Optional['Vehicle'] = None
+    mechanic: Optional['Mechanic'] = None
+    bookingServices: List['BookingService'] = []
+    serviceLogs: List['ServiceLog'] = []
 
     class Config:
         from_attributes = True
@@ -133,12 +156,16 @@ class ServiceLogBase(BaseModel):
 class ServiceLogCreate(ServiceLogBase):
     pass
 
+
 class ServiceLog(ServiceLogBase):
     id: int
     logDate: datetime
+    mechanic: Optional['Mechanic'] = None
+    sparepart: Optional['Sparepart'] = None
 
     class Config:
         from_attributes = True
+
 
 # --- Invoice ---
 class InvoiceBase(BaseModel):
@@ -159,6 +186,7 @@ class Invoice(InvoiceBase):
     grandTotal: float
     paidAt: Optional[datetime] = None
     createdAt: datetime
+    booking: Optional['Booking'] = None
 
     class Config:
         from_attributes = True

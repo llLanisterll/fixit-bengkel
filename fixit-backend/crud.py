@@ -1,3 +1,4 @@
+from datetime import datetime
 from sqlalchemy.orm import Session
 import models, schemas
 import time
@@ -149,11 +150,45 @@ def get_booking(db: Session, booking_id: int):
     return db.query(models.Booking).filter(models.Booking.id == booking_id).first()
 
 def create_booking(db: Session, booking: schemas.BookingCreate):
-    booking_code = f"BK-{str(int(time.time()))[-6:]}"
-    db_booking = models.Booking(**booking.model_dump(), bookingCode=booking_code)
+    # Conflict validation
+    if booking.mechanicId:
+        conflict = db.query(models.Booking).filter(
+            models.Booking.mechanicId == booking.mechanicId,
+            models.Booking.bookingDate == booking.bookingDate,
+            models.Booking.timeSlot == booking.timeSlot,
+            models.Booking.status != "CANCELLED"
+        ).first()
+        if conflict:
+            raise Exception("Mekanik tersebut sudah dibooking pada jam dan tanggal ini.")
+    else:
+        total_mechanics = db.query(models.Mechanic).count()
+        busy = db.query(models.Booking).filter(
+            models.Booking.bookingDate == booking.bookingDate,
+            models.Booking.timeSlot == booking.timeSlot,
+            models.Booking.status != "CANCELLED"
+        ).count()
+        if busy >= total_mechanics:
+            raise Exception("Semua mekanik sedang sibuk pada jam dan tanggal ini.")
+
+    booking_code = f"FIX-{datetime.now().year}-{str(db.query(models.Booking).count() + 1).zfill(4)}"
+    
+    # Extract serviceIds
+    booking_dict = booking.model_dump()
+    service_ids = booking_dict.pop("serviceIds", [])
+    
+    db_booking = models.Booking(**booking_dict, bookingCode=booking_code)
     db.add(db_booking)
     db.commit()
     db.refresh(db_booking)
+
+    # Add booking services
+    if service_ids:
+        services = db.query(models.Service).filter(models.Service.id.in_(service_ids)).all()
+        for s in services:
+            bs = models.BookingService(bookingId=db_booking.id, serviceId=s.id, priceAtBooking=s.price, quantity=1)
+            db.add(bs)
+        db.commit()
+
     return db_booking
 
 def update_booking(db: Session, booking_id: int, booking: schemas.BookingCreate):
