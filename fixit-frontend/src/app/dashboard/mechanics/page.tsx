@@ -1,8 +1,8 @@
 export const dynamic = "force-dynamic";
-import prisma from "@/lib/prisma";
+import { fetchAPI } from "@/lib/api";
 import MechanicsClient from "./MechanicsClient";
 
 export default async function MechanicsPage() {
-  const mechanics = await prisma.mechanic.findMany({ orderBy: { createdAt: "desc" }, include: { _count: { select: { bookings: true } } } });
+  const mechanics = await fetchAPI("/mechanics").catch(() => []);
   return <MechanicsClient mechanics={JSON.parse(JSON.stringify(mechanics))} />;
 }

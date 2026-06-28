@@ -10,7 +10,7 @@ export default function SparepartsClient({ spareparts }: { spareparts: any[] }) 
   const { showConfirm, showToast } = useNotification();
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState<any>(null);
-  const lowStock = spareparts.filter(s => s.stock <= s.minStock);
+  const lowStock = spareparts.filter((s: any) => s.stock <= s.minStock);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -28,12 +28,12 @@ export default function SparepartsClient({ spareparts }: { spareparts: any[] }) 
         <div><h1><Package size={24} style={{ display: "inline", marginRight: "8px" }} />Inventaris Sparepart</h1><p>{spareparts.length} jenis suku cadang</p></div>
         <button className="btn btn-primary" onClick={() => { setEditing(null); setShowForm(true); }}><Plus size={16} /> Tambah Sparepart</button>
       </div>
-      {lowStock.length > 0 && <div className="alert-bar alert-warning"><AlertTriangle size={16} /> {lowStock.length} item stok menipis: {lowStock.map(s => s.name).join(", ")}</div>}
+      {lowStock.length > 0 && <div className="alert-bar alert-warning"><AlertTriangle size={16} /> {lowStock.length} item stok menipis: {lowStock.map((s: any) => s.name).join(", ")}</div>}
       <div className="table-wrapper">
         <table className="table">
           <thead><tr><th>Nama</th><th>Part Number</th><th>Brand</th><th>Stok</th><th>Harga</th><th>Aksi</th></tr></thead>
           <tbody>
-            {spareparts.map(s => (
+            {spareparts.map((s: any) => (
               <tr key={s.id}>
                 <td><strong>{s.name}</strong></td>
                 <td style={{ fontFamily: "monospace", fontSize: "13px" }}>{s.partNumber}</td>

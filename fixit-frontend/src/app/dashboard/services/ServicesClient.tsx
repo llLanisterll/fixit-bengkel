@@ -31,7 +31,7 @@ export default function ServicesClient({ services }: { services: any[] }) {
         <table className="table">
           <thead><tr><th>Nama Layanan</th><th>Kategori</th><th>Harga</th><th>Estimasi</th><th>Status</th><th>Aksi</th></tr></thead>
           <tbody>
-            {services.map(s => (
+            {services.map((s: any) => (
               <tr key={s.id}>
                 <td><strong>{s.name}</strong><br /><span style={{ fontSize: "12px", color: "var(--text-muted)" }}>{s.description}</span></td>
                 <td><span className={`badge badge-${s.category.toLowerCase()}`}>{s.category}</span></td>

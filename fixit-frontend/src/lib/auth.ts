@@ -1,7 +1,5 @@
 import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
-import bcrypt from "bcryptjs";
-import prisma from "./prisma";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [
@@ -16,25 +14,35 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           return null;
         }
 
-        const user = await prisma.user.findUnique({
-          where: { email: credentials.email as string },
-        });
+        try {
+          // Call FastAPI login
+          const res = await fetch("http://localhost:8000/api/auth/login", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/x-www-form-urlencoded",
+            },
+            body: new URLSearchParams({
+              username: credentials.email as string,
+              password: credentials.password as string,
+            }),
+          });
 
-        if (!user) return null;
+          if (!res.ok) return null;
 
-        const isPasswordValid = await bcrypt.compare(
-          credentials.password as string,
-          user.password
-        );
+          const data = await res.json();
+          // Token is base64 encoded payload in the second segment
+          const tokenPayload = JSON.parse(Buffer.from(data.access_token.split('.')[1], 'base64').toString());
 
-        if (!isPasswordValid) return null;
-
-        return {
-          id: String(user.id),
-          email: user.email,
-          name: user.name,
-          role: user.role,
-        };
+          return {
+            id: String(tokenPayload.id),
+            email: tokenPayload.sub,
+            name: tokenPayload.sub.split('@')[0], // Extract from email for fallback
+            role: tokenPayload.role,
+          };
+        } catch (e) {
+          console.error("Auth error:", e);
+          return null;
+        }
       },
     }),
   ],
@@ -60,5 +68,5 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   session: {
     strategy: "jwt",
   },
-  secret: process.env.AUTH_SECRET,
+  secret: process.env.AUTH_SECRET || "super-secret-12345",
 });

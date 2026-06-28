@@ -1,5 +1,5 @@
 "use server";
-import prisma from "@/lib/prisma";
+import { fetchAPI } from "@/lib/api";
 import { revalidatePath } from "next/cache";
 import { auth } from "@/lib/auth";
 
@@ -8,23 +8,13 @@ export async function simulatePayment(invoiceId: number) {
   if (!session?.user) throw new Error("Not authenticated");
 
   // Verify the invoice belongs to the user
-  const invoice = await prisma.invoice.findUnique({
-    where: { id: invoiceId },
-    include: { booking: true }
-  });
+  const invoice = await fetchAPI(`/invoices/${invoiceId}`);
 
   if (!invoice || invoice.booking.userId !== Number(session.user.id)) {
     throw new Error("Unauthorized");
   }
 
-  await prisma.invoice.update({
-    where: { id: invoiceId },
-    data: {
-      paymentStatus: "PAID",
-      paymentMethod: "TRANSFER",
-      paidAt: new Date()
-    }
-  });
+  await fetchAPI(`/invoices/${invoiceId}`, { method: "PUT", body: JSON.stringify({ ...invoice, paymentStatus: "PAID", paymentMethod: "TRANSFER", paidAt: new Date().toISOString() }) });
 
   revalidatePath("/my/invoices");
   return { success: true };

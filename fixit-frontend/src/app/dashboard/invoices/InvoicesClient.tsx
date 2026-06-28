@@ -11,7 +11,7 @@ export default function InvoicesClient({ invoices }: { invoices: any[] }) {
   // Sync modal view when props change
   useEffect(() => {
     if (detail) {
-      const updated = invoices.find(inv => inv.id === detail.id);
+      const updated = invoices.find((inv: any) => inv.id === detail.id);
       if (updated) {
         setDetail(updated);
       }
@@ -25,11 +25,11 @@ export default function InvoicesClient({ invoices }: { invoices: any[] }) {
         <table className="table">
           <thead><tr><th>No. Invoice</th><th>Booking</th><th>Pelanggan</th><th>Grand Total</th><th>Status</th><th>Aksi</th></tr></thead>
           <tbody>
-            {invoices.map(inv => (
+            {invoices.map((inv: any) => (
               <tr key={inv.id}>
                 <td style={{ fontWeight: 600 }}>{inv.invoiceNumber}</td>
-                <td>{inv.booking.bookingCode}</td>
-                <td>{inv.booking.user.name}</td>
+                <td>{inv.booking?.bookingCode}</td>
+                <td>{inv.booking?.user?.name}</td>
                 <td style={{ fontWeight: 700 }}>Rp {inv.grandTotal.toLocaleString("id-ID")}</td>
                 <td><span className={`badge badge-${inv.paymentStatus.toLowerCase()}`}>{inv.paymentStatus}</span></td>
                 <td>

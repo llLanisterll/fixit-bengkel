@@ -1,5 +1,5 @@
 export const dynamic = "force-dynamic";
-import prisma from "@/lib/prisma";
+import { fetchAPI } from "@/lib/api";
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { FileText } from "lucide-react";
@@ -9,10 +9,8 @@ export default async function InvoicesPage() {
   const session = await auth();
   if (!session?.user) redirect("/login");
   const userId = Number(session.user.id);
-  const invoices = await prisma.invoice.findMany({
-    where: { booking: { userId } }, orderBy: { createdAt: "desc" },
-    include: { booking: { include: { vehicle: true, bookingServices: { include: { service: true } } } } },
-  });
+  const allInvoices = await fetchAPI("/invoices").catch(() => []);
+  const invoices = allInvoices.filter((i: any) => i.booking?.userId === userId);
 
   return (
     <>
@@ -21,12 +19,12 @@ export default async function InvoicesPage() {
         <div className="card"><div className="empty-state"><div className="icon">📄</div><h3>Belum ada invoice</h3></div></div>
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-          {invoices.map(inv => (
+          {invoices.map((inv: any) => (
             <div key={inv.id} className="card">
               <div className="flex items-center justify-between" style={{ flexWrap: "wrap", gap: "12px" }}>
                 <div>
                   <div style={{ fontWeight: 700, marginBottom: "4px" }}>{inv.invoiceNumber}</div>
-                  <div style={{ fontSize: "13px", color: "var(--text-muted)" }}>{inv.booking.bookingCode} • {inv.booking.vehicle.brand} {inv.booking.vehicle.model}</div>
+                  <div style={{ fontSize: "13px", color: "var(--text-muted)" }}>{inv.booking?.bookingCode} • {inv.booking.vehicle.brand} {inv.booking.vehicle.model}</div>
                   <div style={{ fontSize: "12px", color: "var(--text-muted)" }}>{new Date(inv.createdAt).toLocaleDateString("id-ID")}</div>
                 </div>
                 <div style={{ textAlign: "right" }}>

@@ -28,7 +28,7 @@ export default function MechanicsClient({ mechanics }: { mechanics: any[] }) {
         <button className="btn btn-primary" onClick={() => { setEditing(null); setShowForm(true); }}><Plus size={16} /> Tambah Mekanik</button>
       </div>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(340px, 1fr))", gap: "20px" }}>
-        {mechanics.map(m => (
+        {mechanics.map((m: any) => (
           <div key={m.id} className="card" style={{ position: "relative" }}>
             <div className="flex items-center gap-3 mb-4">
               <div style={{ width: "48px", height: "48px", flexShrink: 0, borderRadius: "50%", background: "linear-gradient(135deg, var(--accent), var(--purple))", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, fontSize: "18px" }}>{m.name[0]}</div>

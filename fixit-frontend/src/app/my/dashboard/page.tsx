@@ -1,5 +1,5 @@
 export const dynamic = "force-dynamic";
-import prisma from "@/lib/prisma";
+import { fetchAPI } from "@/lib/api";
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import Link from "next/link";
@@ -9,13 +9,18 @@ export default async function CustomerDashboard() {
   const session = await auth();
   if (!session?.user) redirect("/login");
   const userId = Number(session.user.id);
-  const [vehicles, bookings, recentBookings] = await Promise.all([
-    prisma.vehicle.count({ where: { userId } }),
-    prisma.booking.count({ where: { userId } }),
-    prisma.booking.findMany({ where: { userId }, take: 5, orderBy: { createdAt: "desc" }, include: { vehicle: true, mechanic: true, bookingServices: { include: { service: true } } } }),
-  ]);
-  const activeBookings = await prisma.booking.count({ where: { userId, status: { in: ["PENDING", "CONFIRMED", "IN_PROGRESS"] } } });
-  const completedBookings = await prisma.booking.count({ where: { userId, status: "COMPLETED" } });
+    const allVehicles = await fetchAPI("/vehicles").catch(() => []);
+  const allBookings = await fetchAPI("/bookings").catch(() => []);
+  
+  const userVehicles = allVehicles.filter((v: any) => v.userId === userId);
+  const userBookings = allBookings.filter((b: any) => b.userId === userId);
+  
+  const vehicles = userVehicles.length;
+  const bookings = userBookings.length;
+  
+  const recentBookings = userBookings.sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).slice(0, 5);
+  const activeBookings = userBookings.filter((b: any) => ["PENDING", "CONFIRMED", "IN_PROGRESS"].includes(b.status)).length;
+  const completedBookings = userBookings.filter((b: any) => b.status === "COMPLETED").length;
 
   return (
     <>
@@ -41,9 +46,9 @@ export default async function CustomerDashboard() {
                 {recentBookings.map((b: any) => (
                   <tr key={b.id}>
                     <td><Link href={`/my/bookings`} style={{ color: "var(--accent)", fontWeight: 600 }}>{b.bookingCode}</Link></td>
-                    <td>{b.vehicle.brand} {b.vehicle.model}</td>
+                    <td>{b.vehicle?.brand} {b.vehicle?.model}</td>
                     <td>{new Date(b.bookingDate).toLocaleDateString("id-ID")}</td>
-                    <td>{b.bookingServices.map((bs: any) => bs.service.name).join(", ")}</td>
+                    <td>{(b.bookingServices || []).map((bs: any) => bs.service?.name).join(", ")}</td>
                     <td><span className={`badge badge-${b.status === "PENDING" ? "pending" : b.status === "CONFIRMED" ? "confirmed" : b.status === "IN_PROGRESS" ? "progress" : b.status === "COMPLETED" ? "completed" : "cancelled"}`}>{b.status}</span></td>
                   </tr>
                 ))}

@@ -1,7 +1,7 @@
 export const dynamic = "force-dynamic";
-import prisma from "@/lib/prisma";
+import { fetchAPI } from "@/lib/api";
 import SparepartsClient from "./SparepartsClient";
 export default async function SparepartsPage() {
-  const spareparts = await prisma.sparepart.findMany({ orderBy: { name: "asc" } });
+  const spareparts = await fetchAPI("/spareparts").catch(() => []);
   return <SparepartsClient spareparts={JSON.parse(JSON.stringify(spareparts))} />;
 }

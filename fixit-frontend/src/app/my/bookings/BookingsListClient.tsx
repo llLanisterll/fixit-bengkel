@@ -15,17 +15,17 @@ export default function BookingsListClient({ bookings }: { bookings: any[] }) {
   // Sync modal view when props change (after cancelBooking / refresh)
   useEffect(() => {
     if (detail) {
-      const updated = bookings.find(b => b.id === detail.id);
+      const updated = bookings.find((b: any) => b.id === detail.id);
       setDetail(updated || null);
     }
   }, [bookings]);
-  const filtered = bookings.filter(b => filter === "ALL" || b.status === filter);
+  const filtered = bookings.filter((b: any) => filter === "ALL" || b.status === filter);
 
   return (
     <>
       <div className="page-header"><div><h1><CalendarCheck size={24} style={{ display: "inline", marginRight: "8px" }} />Riwayat</h1><p>{bookings.length} booking</p></div></div>
       <div className="flex gap-2 mb-4" style={{ flexWrap: "wrap" }}>
-        {["ALL", "PENDING", "CONFIRMED", "IN_PROGRESS", "COMPLETED", "CANCELLED"].map(s => (
+        {["ALL", "PENDING", "CONFIRMED", "IN_PROGRESS", "COMPLETED", "CANCELLED"].map((s: any) => (
           <button key={s} className={`btn btn-sm ${filter === s ? "btn-primary" : "btn-secondary"}`} onClick={() => setFilter(s)}>{s === "ALL" ? "Semua" : statusLabels[s]}</button>
         ))}
       </div>
@@ -33,17 +33,17 @@ export default function BookingsListClient({ bookings }: { bookings: any[] }) {
         <div className="card"><div className="empty-state"><h3>Tidak ada booking</h3></div></div>
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-          {filtered.map(b => (
+          {filtered.map((b: any) => (
             <div key={b.id} className="card" style={{ cursor: "pointer" }} onClick={() => setDetail(b)}>
               <div className="flex items-center justify-between" style={{ flexWrap: "wrap", gap: "12px" }}>
                 <div>
                   <div style={{ fontWeight: 700, color: "var(--accent)", marginBottom: "4px" }}>{b.bookingCode}</div>
-                  <div style={{ fontSize: "14px" }}>{b.vehicle.brand} {b.vehicle.model} ({b.vehicle.licensePlate})</div>
+                  <div style={{ fontSize: "14px" }}>{b.vehicle?.brand} {b.vehicle?.model} ({b.vehicle.licensePlate})</div>
                   <div style={{ fontSize: "13px", color: "var(--text-muted)" }}>{new Date(b.bookingDate).toLocaleDateString("id-ID")} • {b.timeSlot}</div>
                 </div>
                 <div style={{ textAlign: "right" }}>
                   <span className={`badge badge-${b.status === "PENDING" ? "pending" : b.status === "CONFIRMED" ? "confirmed" : b.status === "IN_PROGRESS" ? "progress" : b.status === "COMPLETED" ? "completed" : "cancelled"}`}>{statusLabels[b.status]}</span>
-                  <div style={{ fontSize: "13px", color: "var(--text-muted)", marginTop: "4px" }}>{b.bookingServices.map((bs: any) => bs.service.name).join(", ")}</div>
+                  <div style={{ fontSize: "13px", color: "var(--text-muted)", marginTop: "4px" }}>{(b.bookingServices || []).map((bs: any) => bs.service?.name).join(", ")}</div>
                 </div>
               </div>
             </div>
@@ -80,12 +80,12 @@ export default function BookingsListClient({ bookings }: { bookings: any[] }) {
             <h4 style={{ marginBottom: "8px", fontSize: "14px" }}>Layanan</h4>
             <div className="table-wrapper mb-4">
               <table className="table"><thead><tr><th>Layanan</th><th>Harga</th></tr></thead><tbody>
-                {detail.bookingServices.map((bs: any) => (<tr key={bs.id}><td>{bs.service.name}</td><td>Rp {bs.priceAtBooking.toLocaleString("id-ID")}</td></tr>))}
+                {(detail.bookingServices || []).map((bs: any) => (<tr key={bs.id}><td>{bs.service?.name}</td><td>Rp {bs.priceAtBooking.toLocaleString("id-ID")}</td></tr>))}
                 <tr><td style={{ fontWeight: 700 }}>Total</td><td style={{ fontWeight: 700, color: "var(--accent)" }}>Rp {detail.bookingServices.reduce((s: number, bs: any) => s + bs.priceAtBooking, 0).toLocaleString("id-ID")}</td></tr>
               </tbody></table>
             </div>
             {detail.serviceLogs.length > 0 && (<><h4 style={{ marginBottom: "8px", fontSize: "14px" }}>Log Pengerjaan</h4><div className="table-wrapper mb-4"><table className="table"><thead><tr><th>Waktu</th><th>Deskripsi</th><th>Part</th><th>Status</th></tr></thead><tbody>
-              {detail.serviceLogs.map((sl: any) => (<tr key={sl.id}><td style={{ fontSize: "12px" }}>{new Date(sl.logDate).toLocaleString("id-ID")}</td><td>{sl.description}</td><td>{sl.sparepart ? `${sl.sparepart.name} (x${sl.sparepartQty})` : "-"}</td><td><span className={`badge badge-${sl.status === "DONE" ? "completed" : "progress"}`}>{sl.status}</span></td></tr>))}
+              {(detail.serviceLogs || []).map((sl: any) => (<tr key={sl.id}><td style={{ fontSize: "12px" }}>{new Date(sl.logDate).toLocaleString("id-ID")}</td><td>{sl.description}</td><td>{sl.sparepart ? `${sl.sparepart.name} (x${sl.sparepartQty})` : "-"}</td><td><span className={`badge badge-${sl.status === "DONE" ? "completed" : "progress"}`}>{sl.status}</span></td></tr>))}
             </tbody></table></div></>)}
             {detail.invoice && (
               <div style={{ background: "rgba(16,185,129,0.08)", padding: "16px", borderRadius: "var(--radius-sm)", marginBottom: "16px" }}>

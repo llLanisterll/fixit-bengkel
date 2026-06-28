@@ -1,5 +1,5 @@
 export const dynamic = "force-dynamic";
-import prisma from "@/lib/prisma";
+import { fetchAPI } from "@/lib/api";
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { UserCircle, Mail, Phone, Calendar } from "lucide-react";
@@ -8,7 +8,7 @@ import EditProfileForm from "./EditProfileForm";
 export default async function ProfilePage() {
   const session = await auth();
   if (!session?.user) redirect("/login");
-  const user = await prisma.user.findUnique({ where: { id: Number(session.user.id) }, include: { _count: { select: { vehicles: true, bookings: true } } } });
+  const user = await fetchAPI(`/users/${session.user.id}`).catch(() => null);
   if (!user) redirect("/login");
 
   return (

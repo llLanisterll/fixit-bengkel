@@ -1,13 +1,10 @@
 export const dynamic = "force-dynamic";
-import prisma from "@/lib/prisma";
+import { fetchAPI } from "@/lib/api";
 import BookingsClient from "./BookingsClient";
 
 export default async function BookingsPage() {
-  const bookings = await prisma.booking.findMany({
-    orderBy: { createdAt: "desc" },
-    include: { user: true, vehicle: true, mechanic: true, bookingServices: { include: { service: true } }, invoice: true, serviceLogs: { include: { sparepart: true } } },
-  });
-  const mechanics = await prisma.mechanic.findMany({ where: { status: "AVAILABLE" } });
-  const spareparts = await prisma.sparepart.findMany({ orderBy: { name: "asc" } });
+  const bookings = await fetchAPI("/bookings").catch(() => []);
+  const mechanics = await fetchAPI("/mechanics").catch(() => []);
+  const spareparts = await fetchAPI("/spareparts").catch(() => []);
   return <BookingsClient bookings={JSON.parse(JSON.stringify(bookings))} mechanics={JSON.parse(JSON.stringify(mechanics))} spareparts={JSON.parse(JSON.stringify(spareparts))} />;
 }

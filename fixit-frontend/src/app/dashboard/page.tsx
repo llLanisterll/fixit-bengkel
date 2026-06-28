@@ -1,43 +1,37 @@
 export const dynamic = "force-dynamic";
-import prisma from "@/lib/prisma";
+import { fetchAPI } from "@/lib/api";
 import { CalendarCheck, Users, Package, DollarSign, AlertTriangle, Clock, TrendingUp } from "lucide-react";
 import Link from "next/link";
 import { DashboardCharts } from "./DashboardCharts";
 
 export default async function AdminDashboard() {
-  const [totalBookings, pendingBookings, inProgressBookings, completedBookings, totalMechanics, availableMechanics, totalSpareparts, lowStockParts, totalRevenue, unpaidInvoices, recentBookings] = await Promise.all([
-    prisma.booking.count(),
-    prisma.booking.count({ where: { status: "PENDING" } }),
-    prisma.booking.count({ where: { status: "IN_PROGRESS" } }),
-    prisma.booking.count({ where: { status: "COMPLETED" } }),
-    prisma.mechanic.count(),
-    prisma.mechanic.count({ where: { status: "AVAILABLE" } }),
-    prisma.sparepart.count(),
-    prisma.sparepart.findMany({ where: { stock: { lte: prisma.sparepart.fields?.minStock || 5 } } }).catch(() => []),
-    prisma.invoice.aggregate({ _sum: { grandTotal: true }, where: { paymentStatus: "PAID" } }),
-    prisma.invoice.count({ where: { paymentStatus: "UNPAID" } }),
-    prisma.booking.findMany({ take: 5, orderBy: { createdAt: "desc" }, include: { user: true, vehicle: true, mechanic: true } }),
-  ]);
-
-  const allParts = await prisma.sparepart.findMany();
-  const lowStock = allParts.filter(p => p.stock <= p.minStock);
-
-  const revenue = totalRevenue._sum.grandTotal || 0;
+    const allBookings = await fetchAPI("/bookings").catch(() => []);
+  const allMechanics = await fetchAPI("/mechanics").catch(() => []);
+  const allParts = await fetchAPI("/spareparts").catch(() => []);
+  const allInvoices = await fetchAPI("/invoices").catch(() => []);
+  
+  const totalBookings = allBookings.length;
+  const pendingBookings = allBookings.filter((b: any) => b.status === "PENDING").length;
+  const inProgressBookings = allBookings.filter((b: any) => b.status === "IN_PROGRESS").length;
+  const completedBookings = allBookings.filter((b: any) => b.status === "COMPLETED").length;
+  const totalMechanics = allMechanics.length;
+  const availableMechanics = allMechanics.filter((m: any) => m.status === "AVAILABLE").length;
+  const totalSpareparts = allParts.length;
+  const lowStock = allParts.filter((p: any) => p.stock <= p.minStock);
+  
+  const paidInvoices = allInvoices.filter((i: any) => i.paymentStatus === "PAID");
+  const revenue = paidInvoices.reduce((sum: any, inv: any) => sum + inv.grandTotal, 0);
+  const unpaidInvoices = allInvoices.filter((i: any) => i.paymentStatus === "UNPAID").length;
+  
+  const recentBookings = allBookings.sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).slice(0, 5);
 
   // Generate stats for charts (last 7 days)
   const sevenDaysAgo = new Date();
   sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6);
   sevenDaysAgo.setHours(0, 0, 0, 0);
 
-  const recentAllBookings = await prisma.booking.findMany({
-    where: { createdAt: { gte: sevenDaysAgo } },
-    select: { createdAt: true }
-  });
-
-  const recentInvoices = await prisma.invoice.findMany({
-    where: { paymentStatus: "PAID", paidAt: { gte: sevenDaysAgo } },
-    select: { paidAt: true, grandTotal: true }
-  });
+  const recentAllBookings = allBookings.filter((b: any) => new Date(b.createdAt) >= sevenDaysAgo);
+  const recentInvoices = paidInvoices.filter((i: any) => i.paidAt && new Date(i.paidAt) >= sevenDaysAgo);
 
   const bookingStats = [];
   const revenueStats = [];
@@ -49,12 +43,12 @@ export default async function AdminDashboard() {
     
     bookingStats.push({
       date: dateStr,
-      count: recentAllBookings.filter(b => new Date(b.createdAt).getDate() === d.getDate()).length
+      count: recentAllBookings.filter((b: any) => new Date(b.createdAt).getDate() === d.getDate()).length
     });
     
     const dayRevenue = recentInvoices
-      .filter(inv => inv.paidAt && new Date(inv.paidAt).getDate() === d.getDate())
-      .reduce((sum, inv) => sum + inv.grandTotal, 0);
+      .filter((inv: any) => inv.paidAt && new Date(inv.paidAt).getDate() === d.getDate())
+      .reduce((sum: any, inv: any) => sum + inv.grandTotal, 0);
       
     revenueStats.push({
       date: dateStr,
@@ -112,8 +106,8 @@ export default async function AdminDashboard() {
                 {recentBookings.map((b: any) => (
                   <tr key={b.id}>
                     <td><Link href={`/dashboard/bookings`} style={{ color: "var(--accent)", fontWeight: 600 }}>{b.bookingCode}</Link></td>
-                    <td>{b.user.name}</td>
-                    <td>{b.vehicle.brand} {b.vehicle.model}</td>
+                    <td>{b.user?.name}</td>
+                    <td>{b.vehicle?.brand} {b.vehicle?.model}</td>
                     <td><span className={`badge badge-${b.status === "PENDING" ? "pending" : b.status === "CONFIRMED" ? "confirmed" : b.status === "IN_PROGRESS" ? "progress" : b.status === "COMPLETED" ? "completed" : "cancelled"}`}>{b.status}</span></td>
                   </tr>
                 ))}

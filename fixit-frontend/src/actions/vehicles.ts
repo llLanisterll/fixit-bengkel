@@ -1,5 +1,5 @@
 "use server";
-import prisma from "@/lib/prisma";
+import { fetchAPI } from "@/lib/api";
 import { revalidatePath } from "next/cache";
 import { auth } from "@/lib/auth";
 
@@ -10,18 +10,18 @@ async function requireAuth() {
 
 export async function createVehicle(data: { userId: number; brand: string; model: string; year: number; licensePlate: string; color?: string }) {
   await requireAuth();
-  await prisma.vehicle.create({ data });
+  await fetchAPI("/vehicles", { method: "POST", body: JSON.stringify(data) });
   revalidatePath("/my/vehicles");
 }
 
 export async function updateVehicle(id: number, data: { brand: string; model: string; year: number; licensePlate: string; color?: string }) {
   await requireAuth();
-  await prisma.vehicle.update({ where: { id }, data });
+  const v = await fetchAPI(`/vehicles/${id}`); await fetchAPI(`/vehicles/${id}`, { method: "PUT", body: JSON.stringify({ ...v, ...data }) });
   revalidatePath("/my/vehicles");
 }
 
 export async function deleteVehicle(id: number) {
   await requireAuth();
-  await prisma.vehicle.delete({ where: { id } });
+  await fetchAPI(`/vehicles/${id}`, { method: "DELETE" });
   revalidatePath("/my/vehicles");
 }

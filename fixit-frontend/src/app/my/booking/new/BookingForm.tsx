@@ -18,13 +18,13 @@ export default function BookingForm({ vehicles, services, mechanics, userId }: {
   const [timeSlot, setTimeSlot] = useState("");
   const [notes, setNotes] = useState("");
   const [loading, setLoading] = useState(false);
-
-  const totalPrice = services.filter(s => selectedServices.includes(s.id)).reduce((sum, s) => sum + s.price, 0);
-  const totalMinutes = services.filter(s => selectedServices.includes(s.id)).reduce((sum, s) => sum + s.estimatedMinutes, 0);
+ 
+  const totalPrice = services.filter((s: any) => selectedServices.includes(s.id)).reduce((sum, s) => sum + s.price, 0);
+  const totalMinutes = services.filter((s: any) => selectedServices.includes(s.id)).reduce((sum, s) => sum + s.estimatedMinutes, 0);
 
   const getAvailableMechanics = () => {
     if (selectedServices.length === 0) return mechanics;
-    const serviceNames = services.filter(s => selectedServices.includes(s.id)).map(s => s.name.toLowerCase());
+    const serviceNames = services.filter((s: any) => selectedServices.includes(s.id)).map((s: any) => s.name.toLowerCase());
     
     let neededSpecs = new Set<string>();
     serviceNames.forEach(name => {
@@ -35,7 +35,7 @@ export default function BookingForm({ vehicles, services, mechanics, userId }: {
     
     if (neededSpecs.size === 0) return mechanics;
     
-    return mechanics.filter(m => 
+    return mechanics.filter((m: any) => 
       m.specialization === "Multi-Spesialis" || neededSpecs.has(m.specialization)
     );
   };
@@ -65,7 +65,7 @@ export default function BookingForm({ vehicles, services, mechanics, userId }: {
     <>
       <div className="page-header"><div><h1><CalendarCheck size={24} style={{ display: "inline", marginRight: "8px" }} />Booking Baru</h1><p>Buat reservasi servis kendaraan Anda</p></div></div>
       <div className="booking-steps">
-        {steps.map(s => (
+        {steps.map((s: any) => (
           <div key={s.num} className={`booking-step ${step === s.num ? "active" : step > s.num ? "completed" : ""}`}>
             {s.icon} {s.label}
           </div>
@@ -79,7 +79,7 @@ export default function BookingForm({ vehicles, services, mechanics, userId }: {
               <div className="empty-state"><p>Belum ada kendaraan. <a href="/my/vehicles" style={{ color: "var(--accent)" }}>Tambah kendaraan</a> terlebih dahulu.</p></div>
             ) : (
               <div className="mechanic-grid">
-                {vehicles.map(v => (
+                {vehicles.map((v: any) => (
                   <div key={v.id} className={`mechanic-card ${vehicleId === v.id ? "selected" : ""}`} onClick={() => setVehicleId(v.id)}>
                     <div className="avatar"><Car size={24} /></div>
                     <h4>{v.brand} {v.model}</h4>
@@ -95,7 +95,7 @@ export default function BookingForm({ vehicles, services, mechanics, userId }: {
             <h3 style={{ marginBottom: "8px" }}>Pilih Layanan Servis</h3>
             <p style={{ color: "var(--text-muted)", fontSize: "13px", marginBottom: "16px" }}>Pilih satu atau lebih layanan yang dibutuhkan</p>
             <div className="service-picker">
-              {services.map(s => (
+              {services.map((s: any) => (
                 <label key={s.id} className={`service-option ${selectedServices.includes(s.id) ? "selected" : ""}`}>
                   <input type="checkbox" checked={selectedServices.includes(s.id)} onChange={() => setSelectedServices(prev => prev.includes(s.id) ? prev.filter(id => id !== s.id) : [...prev, s.id])} />
                   <div className="service-info">
@@ -130,7 +130,7 @@ export default function BookingForm({ vehicles, services, mechanics, userId }: {
               <div className={`mechanic-card ${mechanicId === null ? "selected" : ""}`} onClick={() => setMechanicId(null)}>
                 <div className="avatar">🔄</div><h4>Otomatis</h4><p>Ditentukan bengkel</p>
               </div>
-              {availableMechanics.map(m => (
+              {availableMechanics.map((m: any) => (
                 <div key={m.id} className={`mechanic-card ${mechanicId === m.id ? "selected" : ""}`} onClick={() => setMechanicId(m.id)}>
                   <div className="avatar">{m.name[0]}</div><h4>{m.name}</h4><p>{m.specialization || "Umum"}</p>
                 </div>
@@ -142,14 +142,14 @@ export default function BookingForm({ vehicles, services, mechanics, userId }: {
           <>
             <h3 style={{ marginBottom: "16px" }}>Konfirmasi Booking</h3>
             <div className="detail-grid mb-6">
-              <div className="detail-item"><div className="label">Kendaraan</div><div className="value">{vehicles.find(v => v.id === vehicleId)?.brand} {vehicles.find(v => v.id === vehicleId)?.model} ({vehicles.find(v => v.id === vehicleId)?.licensePlate})</div></div>
+              <div className="detail-item"><div className="label">Kendaraan</div><div className="value">{vehicles.find((v: any) => v.id === vehicleId)?.brand} {vehicles.find((v: any) => v.id === vehicleId)?.model} ({vehicles.find((v: any) => v.id === vehicleId)?.licensePlate})</div></div>
               <div className="detail-item"><div className="label">Tanggal</div><div className="value">{bookingDate} • {timeSlot}</div></div>
-              <div className="detail-item"><div className="label">Mekanik</div><div className="value">{mechanicId ? mechanics.find(m => m.id === mechanicId)?.name : "Otomatis"}</div></div>
+              <div className="detail-item"><div className="label">Mekanik</div><div className="value">{mechanicId ? mechanics.find((m: any) => m.id === mechanicId)?.name : "Otomatis"}</div></div>
               {notes && <div className="detail-item"><div className="label">Catatan</div><div className="value">{notes}</div></div>}
             </div>
             <h4 style={{ marginBottom: "8px", fontSize: "14px" }}>Layanan Dipilih</h4>
             <div style={{ background: "var(--bg-glass)", borderRadius: "var(--radius-sm)", padding: "16px", marginBottom: "16px" }}>
-              {services.filter(s => selectedServices.includes(s.id)).map(s => (
+              {services.filter((s: any) => selectedServices.includes(s.id)).map((s: any) => (
                 <div key={s.id} className="flex justify-between" style={{ padding: "8px 0", borderBottom: "1px solid var(--border)" }}>
                   <span>{s.name}</span><span style={{ fontWeight: 600 }}>Rp {s.price.toLocaleString("id-ID")}</span>
                 </div>

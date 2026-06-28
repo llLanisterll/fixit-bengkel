@@ -1,7 +1,7 @@
 export const dynamic = "force-dynamic";
-import prisma from "@/lib/prisma";
+import { fetchAPI } from "@/lib/api";
 import ServicesClient from "./ServicesClient";
 export default async function ServicesPage() {
-  const services = await prisma.service.findMany({ orderBy: { id: "asc" } });
+  const services = await fetchAPI("/services").catch(() => []);
   return <ServicesClient services={JSON.parse(JSON.stringify(services))} />;
 }

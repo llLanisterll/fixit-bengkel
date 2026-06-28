@@ -31,7 +31,7 @@ export default function VehiclesClient({ vehicles, userId }: { vehicles: any[]; 
         <div className="card"><div className="empty-state"><div className="icon">🚗</div><h3>Belum ada kendaraan</h3><p>Tambahkan kendaraan untuk mulai booking servis</p></div></div>
       ) : (
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: "16px" }}>
-          {vehicles.map(v => (
+          {vehicles.map((v: any) => (
             <div key={v.id} className="card">
               <div className="flex items-center gap-3 mb-4">
                 <div style={{ width: "48px", height: "48px", borderRadius: "var(--radius-sm)", background: "rgba(59,130,246,0.12)", display: "flex", alignItems: "center", justifyContent: "center" }}><Car size={24} color="#3b82f6" /></div>

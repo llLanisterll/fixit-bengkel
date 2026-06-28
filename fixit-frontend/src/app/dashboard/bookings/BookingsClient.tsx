@@ -16,7 +16,7 @@ export default function BookingsClient({ bookings, mechanics, spareparts }: { bo
   // Sync modal view when props change (after router.refresh)
   useEffect(() => {
     if (detail) {
-      const updated = bookings.find(b => b.id === detail.id);
+      const updated = bookings.find((b: any) => b.id === detail.id);
       if (updated) {
         setDetail(updated);
       }
@@ -25,9 +25,9 @@ export default function BookingsClient({ bookings, mechanics, spareparts }: { bo
 
 
 
-  const filtered = bookings.filter(b => {
+  const filtered = bookings.filter((b: any) => {
     if (filter !== "ALL" && b.status !== filter) return false;
-    if (search && !b.bookingCode.toLowerCase().includes(search.toLowerCase()) && !b.user.name.toLowerCase().includes(search.toLowerCase())) return false;
+    if (search && !b.bookingCode.toLowerCase().includes(search.toLowerCase()) && !b.user?.name.toLowerCase().includes(search.toLowerCase())) return false;
     return true;
   });
 
@@ -43,9 +43,9 @@ export default function BookingsClient({ bookings, mechanics, spareparts }: { bo
         <div><h1><CalendarCheck size={24} style={{ display: "inline", marginRight: "8px" }} />Kelola Booking</h1><p>{bookings.length} total booking</p></div>
       </div>
       <div className="flex gap-3 mb-4" style={{ flexWrap: "wrap" }}>
-        {["ALL", "PENDING", "CONFIRMED", "IN_PROGRESS", "COMPLETED", "CANCELLED"].map(s => (
+        {["ALL", "PENDING", "CONFIRMED", "IN_PROGRESS", "COMPLETED", "CANCELLED"].map((s: any) => (
           <button key={s} className={`btn btn-sm ${filter === s ? "btn-primary" : "btn-secondary"}`} onClick={() => setFilter(s)}>
-            {s === "ALL" ? "Semua" : s.replace("_", " ")} {s !== "ALL" && `(${bookings.filter(b => b.status === s).length})`}
+            {s === "ALL" ? "Semua" : s.replace("_", " ")} {s !== "ALL" && `(${bookings.filter((b: any) => b.status === s).length})`}
           </button>
         ))}
       </div>
@@ -57,18 +57,18 @@ export default function BookingsClient({ bookings, mechanics, spareparts }: { bo
         <table className="table">
           <thead><tr><th>Kode</th><th>Pelanggan</th><th>Kendaraan</th><th>Tanggal</th><th>Mekanik</th><th>Status</th><th>Aksi</th></tr></thead>
           <tbody>
-            {filtered.map(b => (
+            {filtered.map((b: any) => (
               <tr key={b.id}>
                 <td style={{ fontWeight: 600, color: "var(--accent)" }}>{b.bookingCode}</td>
-                <td>{b.user.name}</td>
-                <td>{b.vehicle.brand} {b.vehicle.model}<br /><span style={{ fontSize: "12px", color: "var(--text-muted)" }}>{b.vehicle.licensePlate}</span></td>
+                <td>{b.user?.name}</td>
+                <td>{b.vehicle?.brand} {b.vehicle?.model}<br /><span style={{ fontSize: "12px", color: "var(--text-muted)" }}>{b.vehicle.licensePlate}</span></td>
                 <td>{new Date(b.bookingDate).toLocaleDateString("id-ID")}<br /><span style={{ fontSize: "12px", color: "var(--text-muted)" }}>{b.timeSlot}</span></td>
                 <td>{b.mechanic?.name || <span style={{ color: "var(--text-muted)" }}>Belum ditugaskan</span>}</td>
                 <td><span className={`badge badge-${b.status === "PENDING" ? "pending" : b.status === "CONFIRMED" ? "confirmed" : b.status === "IN_PROGRESS" ? "progress" : b.status === "COMPLETED" ? "completed" : "cancelled"}`}>{b.status}</span></td>
                 <td>
                   <div className="flex gap-2">
                     <button className="btn btn-secondary btn-sm" onClick={() => setDetail(b)}><Eye size={14} /></button>
-                    {statusActions[b.status]?.map(action => (
+                    {(statusActions[b.status] || []).map(action => (
                       <button key={action.next} className={`btn btn-sm ${action.next === "CANCELLED" ? "btn-danger" : "btn-primary"}`}
                         onClick={async () => {
                           let mechId = b.mechanicId;
@@ -92,6 +92,7 @@ export default function BookingsClient({ bookings, mechanics, spareparts }: { bo
           </tbody>
         </table>
       </div>
+      {/* Modal Detail Booking */}
       {detail && (
         <div className="modal-overlay" onClick={() => setDetail(null)}>
           <div className="modal modal-lg" onClick={e => e.stopPropagation()}>
@@ -122,10 +123,10 @@ export default function BookingsClient({ bookings, mechanics, spareparts }: { bo
                       <option value="">Pilih Mekanik...</option>
                       {(() => {
                         const allOptions = [...mechanics];
-                        if (detail.mechanic && !allOptions.some(m => m.id === detail.mechanic.id)) {
+                        if (detail.mechanic && !allOptions.some((m: any) => m.id === detail.mechanic.id)) {
                           allOptions.push(detail.mechanic);
                         }
-                        return allOptions.map(m => (
+                        return allOptions.map((m: any) => (
                           <option key={m.id} value={m.id}>{m.name} ({m.specialization || "Umum"})</option>
                         ));
                       })()}
@@ -142,7 +143,7 @@ export default function BookingsClient({ bookings, mechanics, spareparts }: { bo
                 <thead><tr><th>Layanan</th><th>Harga</th></tr></thead>
                 <tbody>
                   {detail.bookingServices?.map((bs: any) => (
-                    <tr key={bs.id}><td>{bs.service.name}</td><td>Rp {bs.priceAtBooking.toLocaleString("id-ID")}</td></tr>
+                    <tr key={bs.id}><td>{bs.service?.name}</td><td>Rp {bs.priceAtBooking.toLocaleString("id-ID")}</td></tr>
                   ))}
                 </tbody>
               </table>
@@ -155,7 +156,7 @@ export default function BookingsClient({ bookings, mechanics, spareparts }: { bo
                   <table className="table">
                     <thead><tr><th>Waktu</th><th>Deskripsi</th><th>Part</th><th>Status</th></tr></thead>
                     <tbody>
-                      {detail.serviceLogs.map((log: any) => (
+                      {(detail.serviceLogs || []).map((log: any) => (
                         <tr key={log.id}>
                           <td style={{fontSize: "12px"}}>{new Date(log.logDate).toLocaleString("id-ID")}</td>
                           <td>{log.description}</td>
