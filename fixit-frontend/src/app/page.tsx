@@ -378,7 +378,12 @@ export default function HomePage() {
             <div className="lp-badge lp-badge--light">Buat Janji Sekarang</div>
             <h2>Siap Servis Kendaraan Anda?</h2>
             <p>Daftarkan kendaraan Anda dan dapatkan estimasi harga gratis. Tim kami siap melayani 7 hari seminggu.</p>
-            <div className="lp-booking__contacts">
+            <div style={{ marginTop: "24px" }}>
+              <Link href="/register" className="lp-btn lp-btn--primary lp-btn--lg" style={{ display: "inline-flex" }}>
+                Buat Janji Sekarang <ArrowRight size={16} />
+              </Link>
+            </div>
+            <div className="lp-booking__contacts" style={{ marginTop: "40px" }}>
               <div className="lp-contact-item">
                 <Phone size={16} /> <span>+62 812-3456-7890</span>
               </div>
@@ -389,42 +394,6 @@ export default function HomePage() {
                 <Mail size={16} /> <span>hello@fixit.id</span>
               </div>
             </div>
-          </div>
-          <div className="lp-booking__form">
-            <h3>Booking Cepat</h3>
-            <div className="lp-form-field">
-              <label>Nama Lengkap</label>
-              <input type="text" placeholder="Nama Anda" />
-            </div>
-            <div className="lp-form-field">
-              <label>No. Telepon</label>
-              <input type="tel" placeholder="+62 xxx xxxx xxxx" />
-            </div>
-            <div className="lp-form-row">
-              <div className="lp-form-field">
-                <label>Jenis Kendaraan</label>
-                <select>
-                  <option>Pilih Kendaraan</option>
-                  <option>Mobil</option>
-                  <option>Motor</option>
-                  <option>Truk</option>
-                </select>
-              </div>
-              <div className="lp-form-field">
-                <label>Jenis Servis</label>
-                <select>
-                  <option>Pilih Servis</option>
-                  <option>Servis Rutin</option>
-                  <option>Ganti Oli</option>
-                  <option>Rem & Suspensi</option>
-                  <option>Tune-Up</option>
-                </select>
-              </div>
-            </div>
-            <Link href="/register" className="lp-btn lp-btn--primary" style={{ width: "100%", justifyContent: "center", padding: "14px" }}>
-              Buat Janji Sekarang <ArrowRight size={16} />
-            </Link>
-            <p className="lp-booking__note">* Konfirmasi akan dikirim via WhatsApp dalam 5 menit</p>
           </div>
         </div>
       </section>
