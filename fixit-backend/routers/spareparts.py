@@ -10,7 +10,7 @@ router = APIRouter()
 def read_spareparts(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     return crud.get_spareparts(db, skip=skip, limit=limit)
 
-@router.get("/{{id}}", response_model=schemas.Sparepart)
+@router.get("/{id}", response_model=schemas.Sparepart)
 def read_sparepart(id: int, db: Session = Depends(get_db)):
     db_obj = crud.get_sparepart(db, id)
     if db_obj is None:
@@ -21,11 +21,11 @@ def read_sparepart(id: int, db: Session = Depends(get_db)):
 def create_sparepart(obj: schemas.SparepartCreate, db: Session = Depends(get_db)):
     return crud.create_sparepart(db=db, sparepart=obj)
 
-@router.put("/{{id}}", response_model=schemas.Sparepart)
+@router.put("/{id}", response_model=schemas.Sparepart)
 def update_sparepart(id: int, obj: schemas.SparepartCreate, db: Session = Depends(get_db)):
     return crud.update_sparepart(db=db, sparepart_id=id, sparepart=obj)
 
-@router.delete("/{{id}}")
+@router.delete("/{id}")
 def delete_sparepart(id: int, db: Session = Depends(get_db)):
     crud.delete_sparepart(db=db, sparepart_id=id)
-    return {{"success": True}}
+    return {"success": True}

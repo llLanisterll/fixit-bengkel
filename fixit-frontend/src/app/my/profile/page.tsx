@@ -35,10 +35,10 @@ export default async function ProfilePage() {
         </div>
         <div className="grid-2 mt-4">
           <div style={{ padding: "16px", background: "rgba(59,130,246,0.08)", borderRadius: "var(--radius-sm)", textAlign: "center" }}>
-            <div style={{ fontSize: "24px", fontWeight: 800 }}>{user._count.vehicles}</div><div style={{ fontSize: "13px", color: "var(--text-muted)" }}>Kendaraan</div>
+            <div style={{ fontSize: "24px", fontWeight: 800 }}>{user.vehicles?.length || 0}</div><div style={{ fontSize: "13px", color: "var(--text-muted)" }}>Kendaraan</div>
           </div>
           <div style={{ padding: "16px", background: "rgba(16,185,129,0.08)", borderRadius: "var(--radius-sm)", textAlign: "center" }}>
-            <div style={{ fontSize: "24px", fontWeight: 800 }}>{user._count.bookings}</div><div style={{ fontSize: "13px", color: "var(--text-muted)" }}>Total Booking</div>
+            <div style={{ fontSize: "24px", fontWeight: 800 }}>{user.bookings?.length || 0}</div><div style={{ fontSize: "13px", color: "var(--text-muted)" }}>Total Booking</div>
           </div>
         </div>
         

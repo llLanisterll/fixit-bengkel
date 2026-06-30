@@ -15,10 +15,20 @@ export default function VehiclesClient({ vehicles, userId }: { vehicles: any[]; 
     e.preventDefault();
     const fd = new FormData(e.currentTarget);
     const data = { brand: fd.get("brand") as string, model: fd.get("model") as string, year: Number(fd.get("year")), licensePlate: fd.get("licensePlate") as string, color: fd.get("color") as string };
-    if (editing) { await updateVehicle(editing.id, data); setEditing(null); }
-    else { await createVehicle({ ...data, userId }); }
-    router.refresh();
-    setShowForm(false);
+    try {
+      if (editing) { 
+        await updateVehicle(editing.id, data); 
+        setEditing(null); 
+        showToast("Kendaraan diperbarui", "success");
+      } else { 
+        await createVehicle({ ...data, userId }); 
+        showToast("Kendaraan ditambahkan", "success");
+      }
+      router.refresh();
+      setShowForm(false);
+    } catch (err: any) {
+      showToast(err.message || "Gagal menyimpan kendaraan", "error");
+    }
   }
 
   return (

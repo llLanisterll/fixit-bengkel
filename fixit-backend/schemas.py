@@ -2,32 +2,12 @@ from pydantic import BaseModel
 from typing import Optional, List
 from datetime import datetime
 
-# --- User & Auth ---
+# --- Base Models ---
 class UserBase(BaseModel):
     name: str
     email: str
     phone: Optional[str] = None
 
-class UserCreate(UserBase):
-    password: str
-
-class UserLogin(BaseModel):
-    email: str
-    password: str
-
-class User(UserBase):
-    id: int
-    role: str
-    createdAt: datetime
-    vehicles: List['Vehicle'] = []
-    bookings: List['Booking'] = []
-
-    class Config:
-        from_attributes = True
-
-class Token(BaseModel):
-    access_token: str
-    token_type: str# --- Service ---
 class ServiceBase(BaseModel):
     name: str
     description: Optional[str] = None
@@ -36,16 +16,6 @@ class ServiceBase(BaseModel):
     estimatedMinutes: Optional[int] = 60
     isActive: Optional[bool] = True
 
-class ServiceCreate(ServiceBase):
-    pass
-
-class Service(ServiceBase):
-    id: int
-
-    class Config:
-        from_attributes = True
-
-# --- Mechanic ---
 class MechanicBase(BaseModel):
     name: str
     phone: Optional[str] = None
@@ -53,17 +23,6 @@ class MechanicBase(BaseModel):
     photo: Optional[str] = None
     status: Optional[str] = "AVAILABLE"
 
-class MechanicCreate(MechanicBase):
-    pass
-
-class Mechanic(MechanicBase):
-    id: int
-    createdAt: datetime
-
-    class Config:
-        from_attributes = True
-
-# --- Sparepart ---
 class SparepartBase(BaseModel):
     name: str
     partNumber: str
@@ -73,16 +32,6 @@ class SparepartBase(BaseModel):
     unit: Optional[str] = "pcs"
     minStock: Optional[int] = 5
 
-class SparepartCreate(SparepartBase):
-    pass
-
-class Sparepart(SparepartBase):
-    id: int
-
-    class Config:
-        from_attributes = True
-
-# --- Vehicle ---
 class VehicleBase(BaseModel):
     userId: int
     brand: str
@@ -90,33 +39,6 @@ class VehicleBase(BaseModel):
     year: int
     licensePlate: str
     color: Optional[str] = None
-
-class VehicleCreate(VehicleBase):
-    pass
-
-class Vehicle(VehicleBase):
-    id: int
-    createdAt: datetime
-    user: Optional['User'] = None
-
-    class Config:
-        from_attributes = True
-
-
-class BookingServiceBase(BaseModel):
-    bookingId: int
-    serviceId: int
-    priceAtBooking: float
-    quantity: Optional[int] = 1
-
-class BookingService(BookingServiceBase):
-    id: int
-    service: Optional['Service'] = None
-
-    class Config:
-        from_attributes = True
-
-# --- Booking ---
 
 class BookingBase(BaseModel):
     userId: int
@@ -127,24 +49,84 @@ class BookingBase(BaseModel):
     status: Optional[str] = "PENDING"
     notes: Optional[str] = None
 
-class BookingCreate(BookingBase):
-    serviceIds: List[int] = []
-
-class Booking(BookingBase):
+# --- Min / Flat Models (No Cycles) ---
+class UserMin(UserBase):
     id: int
-    bookingCode: str
-    createdAt: datetime
-    updatedAt: datetime
-    user: Optional['User'] = None
-    vehicle: Optional['Vehicle'] = None
-    mechanic: Optional['Mechanic'] = None
-    bookingServices: List['BookingService'] = []
-    serviceLogs: List['ServiceLog'] = []
-
+    role: str
     class Config:
         from_attributes = True
 
-# --- ServiceLog ---
+class VehicleMin(VehicleBase):
+    id: int
+    createdAt: datetime
+    class Config:
+        from_attributes = True
+
+class BookingMin(BookingBase):
+    id: int
+    bookingCode: str
+    vehicle: Optional[VehicleMin] = None
+    user: Optional[UserMin] = None
+    class Config:
+        from_attributes = True
+
+class MechanicMin(MechanicBase):
+    id: int
+    class Config:
+        from_attributes = True
+
+class ServiceMin(ServiceBase):
+    id: int
+    class Config:
+        from_attributes = True
+
+class SparepartMin(SparepartBase):
+    id: int
+    class Config:
+        from_attributes = True
+
+class InvoiceMin(BaseModel):
+    id: int
+    invoiceNumber: str
+    totalCost: float
+    grandTotal: float
+    class Config:
+        from_attributes = True
+
+# --- Create Models ---
+class UserCreate(UserBase):
+    password: str
+
+class UserUpdate(BaseModel):
+    name: Optional[str] = None
+    email: Optional[str] = None
+    phone: Optional[str] = None
+    role: Optional[str] = None
+    password: Optional[str] = None
+
+class UserLogin(BaseModel):
+    email: str
+    password: str
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+
+class ServiceCreate(ServiceBase):
+    pass
+
+class MechanicCreate(MechanicBase):
+    pass
+
+class SparepartCreate(SparepartBase):
+    pass
+
+class VehicleCreate(VehicleBase):
+    pass
+
+class BookingCreate(BookingBase):
+    serviceIds: List[int] = []
+
 class ServiceLogBase(BaseModel):
     bookingId: int
     mechanicId: int
@@ -156,18 +138,6 @@ class ServiceLogBase(BaseModel):
 class ServiceLogCreate(ServiceLogBase):
     pass
 
-
-class ServiceLog(ServiceLogBase):
-    id: int
-    logDate: datetime
-    mechanic: Optional['Mechanic'] = None
-    sparepart: Optional['Sparepart'] = None
-
-    class Config:
-        from_attributes = True
-
-
-# --- Invoice ---
 class InvoiceBase(BaseModel):
     bookingId: int
     paymentStatus: Optional[str] = "UNPAID"
@@ -175,6 +145,42 @@ class InvoiceBase(BaseModel):
 
 class InvoiceCreate(BaseModel):
     bookingId: int
+
+# --- Full Models (With Nested Relationships) ---
+
+class ServiceLog(ServiceLogBase):
+    id: int
+    logDate: datetime
+    mechanic: Optional[MechanicMin] = None
+    sparepart: Optional[SparepartMin] = None
+    class Config:
+        from_attributes = True
+
+class BookingServiceBase(BaseModel):
+    bookingId: int
+    serviceId: int
+    priceAtBooking: float
+    quantity: Optional[int] = 1
+
+class BookingService(BookingServiceBase):
+    id: int
+    service: Optional[ServiceMin] = None
+    class Config:
+        from_attributes = True
+
+class Booking(BookingBase):
+    id: int
+    bookingCode: str
+    createdAt: datetime
+    updatedAt: datetime
+    user: Optional[UserMin] = None
+    vehicle: Optional[VehicleMin] = None
+    mechanic: Optional[MechanicMin] = None
+    bookingServices: List[BookingService] = []
+    serviceLogs: List[ServiceLog] = []
+    invoice: Optional[InvoiceMin] = None
+    class Config:
+        from_attributes = True
 
 class Invoice(InvoiceBase):
     id: int
@@ -186,7 +192,39 @@ class Invoice(InvoiceBase):
     grandTotal: float
     paidAt: Optional[datetime] = None
     createdAt: datetime
-    booking: Optional['Booking'] = None
-
+    booking: Optional[BookingMin] = None
     class Config:
         from_attributes = True
+
+class Vehicle(VehicleBase):
+    id: int
+    createdAt: datetime
+    user: Optional[UserMin] = None
+    class Config:
+        from_attributes = True
+
+class Service(ServiceBase):
+    id: int
+    class Config:
+        from_attributes = True
+
+class Mechanic(MechanicBase):
+    id: int
+    createdAt: datetime
+    class Config:
+        from_attributes = True
+
+class Sparepart(SparepartBase):
+    id: int
+    class Config:
+        from_attributes = True
+
+class User(UserBase):
+    id: int
+    role: str
+    createdAt: datetime
+    vehicles: List[VehicleMin] = []
+    bookings: List[BookingMin] = []
+    class Config:
+        from_attributes = True
+

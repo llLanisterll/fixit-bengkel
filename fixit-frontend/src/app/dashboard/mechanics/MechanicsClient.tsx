@@ -38,7 +38,7 @@ export default function MechanicsClient({ mechanics }: { mechanics: any[] }) {
               </div>
               <span className={`badge badge-${m.status.toLowerCase()}`} style={{ flexShrink: 0 }}>{m.status}</span>
             </div>
-            <div style={{ fontSize: "13px", color: "var(--text-secondary)", marginBottom: "12px" }}>📞 {m.phone || "-"} • 📋 {m._count?.bookings || 0} booking</div>
+            <div style={{ fontSize: "13px", color: "var(--text-secondary)", marginBottom: "12px" }}>📞 {m.phone || "-"} • 📋 {m.bookings?.length || 0} booking</div>
             <div className="flex gap-2">
               <button className="btn btn-secondary btn-sm" onClick={() => { setEditing(m); setShowForm(true); }}><Edit size={14} /> Edit</button>
               <button className="btn btn-danger btn-sm" onClick={() => {

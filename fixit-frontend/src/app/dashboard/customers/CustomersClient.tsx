@@ -106,7 +106,7 @@ export default function CustomersClient({ customers }: { customers: any[] }) {
                 <td>{(c.vehicles || []).map((v: any) => `${v.brand} ${v.model} (${v.licensePlate})`).join(", ") || "-"}</td>
                 <td>
                   <span className="badge badge-confirmed">
-                    <CalendarCheck size={12} /> {c._count?.bookings || 0}
+                    <CalendarCheck size={12} /> {c.bookings?.length || 0}
                   </span>
                 </td>
                 <td>

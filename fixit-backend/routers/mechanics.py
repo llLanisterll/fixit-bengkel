@@ -10,7 +10,7 @@ router = APIRouter()
 def read_mechanics(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     return crud.get_mechanics(db, skip=skip, limit=limit)
 
-@router.get("/{{id}}", response_model=schemas.Mechanic)
+@router.get("/{id}", response_model=schemas.Mechanic)
 def read_mechanic(id: int, db: Session = Depends(get_db)):
     db_obj = crud.get_mechanic(db, id)
     if db_obj is None:
@@ -21,11 +21,11 @@ def read_mechanic(id: int, db: Session = Depends(get_db)):
 def create_mechanic(obj: schemas.MechanicCreate, db: Session = Depends(get_db)):
     return crud.create_mechanic(db=db, mechanic=obj)
 
-@router.put("/{{id}}", response_model=schemas.Mechanic)
+@router.put("/{id}", response_model=schemas.Mechanic)
 def update_mechanic(id: int, obj: schemas.MechanicCreate, db: Session = Depends(get_db)):
     return crud.update_mechanic(db=db, mechanic_id=id, mechanic=obj)
 
-@router.delete("/{{id}}")
+@router.delete("/{id}")
 def delete_mechanic(id: int, db: Session = Depends(get_db)):
     crud.delete_mechanic(db=db, mechanic_id=id)
-    return {{"success": True}}
+    return {"success": True}

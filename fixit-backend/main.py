@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from database import engine
 import models
-from routers import services, mechanics, spareparts, vehicles, bookings, service_logs, invoices, auth
+from routers import services, mechanics, spareparts, vehicles, bookings, service_logs, invoices, auth, users
 
 # Create tables if they don't exist
 models.Base.metadata.create_all(bind=engine)
@@ -14,6 +14,7 @@ app = FastAPI(
 
 # Include routers
 app.include_router(auth.router, prefix="/api/auth", tags=["Auth"])
+app.include_router(users.router, prefix="/api/users", tags=["Users"])
 app.include_router(services.router, prefix="/api/services", tags=["Services"])
 app.include_router(mechanics.router, prefix="/api/mechanics", tags=["Mechanics"])
 app.include_router(spareparts.router, prefix="/api/spareparts", tags=["Spareparts"])

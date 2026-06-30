@@ -10,7 +10,7 @@ router = APIRouter()
 def read_service_logs(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     return crud.get_service_logs(db, skip=skip, limit=limit)
 
-@router.get("/{{id}}", response_model=schemas.ServiceLog)
+@router.get("/{id}", response_model=schemas.ServiceLog)
 def read_service_log(id: int, db: Session = Depends(get_db)):
     db_obj = crud.get_service_log(db, id)
     if db_obj is None:
@@ -21,11 +21,11 @@ def read_service_log(id: int, db: Session = Depends(get_db)):
 def create_service_log(obj: schemas.ServiceLogCreate, db: Session = Depends(get_db)):
     return crud.create_service_log(db=db, service_log=obj)
 
-@router.put("/{{id}}", response_model=schemas.ServiceLog)
+@router.put("/{id}", response_model=schemas.ServiceLog)
 def update_service_log(id: int, obj: schemas.ServiceLogCreate, db: Session = Depends(get_db)):
     return crud.update_service_log(db=db, service_log_id=id, service_log=obj)
 
-@router.delete("/{{id}}")
+@router.delete("/{id}")
 def delete_service_log(id: int, db: Session = Depends(get_db)):
     crud.delete_service_log(db=db, service_log_id=id)
-    return {{"success": True}}
+    return {"success": True}

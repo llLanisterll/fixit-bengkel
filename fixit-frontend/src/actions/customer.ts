@@ -14,7 +14,7 @@ export async function simulatePayment(invoiceId: number) {
     throw new Error("Unauthorized");
   }
 
-  await fetchAPI(`/invoices/${invoiceId}`, { method: "PUT", body: JSON.stringify({ ...invoice, paymentStatus: "PAID", paymentMethod: "TRANSFER", paidAt: new Date().toISOString() }) });
+  await fetchAPI(`/invoices/${invoiceId}?payment_method=TRANSFER`, { method: "PUT" });
 
   revalidatePath("/my/invoices");
   return { success: true };

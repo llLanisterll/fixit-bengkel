@@ -15,8 +15,8 @@ class User(Base):
     createdAt = Column(DateTime, default=datetime.utcnow)
     updatedAt = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
-    bookings = relationship("Booking", back_populates="user")
-    vehicles = relationship("Vehicle", back_populates="user")
+    bookings = relationship("Booking", back_populates="user", cascade="all, delete-orphan", passive_deletes=True)
+    vehicles = relationship("Vehicle", back_populates="user", cascade="all, delete-orphan", passive_deletes=True)
 
 class Vehicle(Base):
     __tablename__ = "vehicles"
@@ -30,7 +30,7 @@ class Vehicle(Base):
     createdAt = Column(DateTime, default=datetime.utcnow)
 
     user = relationship("User", back_populates="vehicles")
-    bookings = relationship("Booking", back_populates="vehicle")
+    bookings = relationship("Booking", back_populates="vehicle", cascade="all, delete-orphan", passive_deletes=True)
 
 class Service(Base):
     __tablename__ = "services"
@@ -42,7 +42,7 @@ class Service(Base):
     estimatedMinutes = Column(Integer, default=60)
     isActive = Column(Boolean, default=True)
 
-    bookingServices = relationship("BookingService", back_populates="service")
+    bookingServices = relationship("BookingService", back_populates="service", cascade="all, delete-orphan", passive_deletes=True)
 
 class Mechanic(Base):
     __tablename__ = "mechanics"
@@ -55,7 +55,7 @@ class Mechanic(Base):
     createdAt = Column(DateTime, default=datetime.utcnow)
 
     bookings = relationship("Booking", back_populates="mechanic")
-    serviceLogs = relationship("ServiceLog", back_populates="mechanic")
+    serviceLogs = relationship("ServiceLog", back_populates="mechanic", cascade="all, delete-orphan", passive_deletes=True)
 
 class Booking(Base):
     __tablename__ = "bookings"
@@ -74,9 +74,9 @@ class Booking(Base):
     user = relationship("User", back_populates="bookings")
     vehicle = relationship("Vehicle", back_populates="bookings")
     mechanic = relationship("Mechanic", back_populates="bookings")
-    bookingServices = relationship("BookingService", back_populates="booking")
-    serviceLogs = relationship("ServiceLog", back_populates="booking")
-    invoice = relationship("Invoice", back_populates="booking", uselist=False)
+    bookingServices = relationship("BookingService", back_populates="booking", cascade="all, delete-orphan", passive_deletes=True)
+    serviceLogs = relationship("ServiceLog", back_populates="booking", cascade="all, delete-orphan", passive_deletes=True)
+    invoice = relationship("Invoice", back_populates="booking", uselist=False, cascade="all, delete-orphan", passive_deletes=True)
 
 class BookingService(Base):
     __tablename__ = "booking_services"

@@ -10,6 +10,12 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 def get_user_by_email(db: Session, email: str):
     return db.query(models.User).filter(models.User.email == email).first()
 
+def get_user(db: Session, user_id: int):
+    return db.query(models.User).filter(models.User.id == user_id).first()
+
+def get_users(db: Session, skip: int = 0, limit: int = 100):
+    return db.query(models.User).offset(skip).limit(limit).all()
+
 def create_user(db: Session, user: schemas.UserCreate):
     hashed_password = pwd_context.hash(user.password)
     db_user = models.User(
@@ -22,7 +28,28 @@ def create_user(db: Session, user: schemas.UserCreate):
     db.add(db_user)
     db.commit()
     db.refresh(db_user)
-    return db_user# --- Services ---
+    return db_user
+
+def update_user(db: Session, user_id: int, user: schemas.UserUpdate):
+    db_user = get_user(db, user_id)
+    if db_user:
+        update_data = user.model_dump(exclude_unset=True)
+        if "password" in update_data and update_data["password"]:
+            update_data["password"] = pwd_context.hash(update_data["password"])
+        for key, value in update_data.items():
+            setattr(db_user, key, value)
+        db.commit()
+        db.refresh(db_user)
+    return db_user
+
+def delete_user(db: Session, user_id: int):
+    db_user = get_user(db, user_id)
+    if db_user:
+        db.delete(db_user)
+        db.commit()
+    return db_user
+
+# --- Services ---
 def get_services(db: Session, skip: int = 0, limit: int = 100):
     return db.query(models.Service).offset(skip).limit(limit).all()
 
@@ -120,6 +147,10 @@ def get_vehicle(db: Session, vehicle_id: int):
     return db.query(models.Vehicle).filter(models.Vehicle.id == vehicle_id).first()
 
 def create_vehicle(db: Session, vehicle: schemas.VehicleCreate):
+    existing = db.query(models.Vehicle).filter(models.Vehicle.licensePlate == vehicle.licensePlate).first()
+    if existing:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=400, detail="Kendaraan dengan plat nomor ini sudah terdaftar.")
     db_vehicle = models.Vehicle(**vehicle.model_dump())
     db.add(db_vehicle)
     db.commit()
@@ -127,6 +158,10 @@ def create_vehicle(db: Session, vehicle: schemas.VehicleCreate):
     return db_vehicle
 
 def update_vehicle(db: Session, vehicle_id: int, vehicle: schemas.VehicleCreate):
+    existing = db.query(models.Vehicle).filter(models.Vehicle.licensePlate == vehicle.licensePlate, models.Vehicle.id != vehicle_id).first()
+    if existing:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=400, detail="Kendaraan dengan plat nomor ini sudah terdaftar.")
     db_vehicle = get_vehicle(db, vehicle_id)
     if db_vehicle:
         for key, value in vehicle.model_dump().items():
@@ -144,7 +179,7 @@ def delete_vehicle(db: Session, vehicle_id: int):
 
 # --- Bookings ---
 def get_bookings(db: Session, skip: int = 0, limit: int = 100):
-    return db.query(models.Booking).offset(skip).limit(limit).all()
+    return db.query(models.Booking).order_by(models.Booking.id.desc()).offset(skip).limit(limit).all()
 
 def get_booking(db: Session, booking_id: int):
     return db.query(models.Booking).filter(models.Booking.id == booking_id).first()
@@ -159,7 +194,8 @@ def create_booking(db: Session, booking: schemas.BookingCreate):
             models.Booking.status != "CANCELLED"
         ).first()
         if conflict:
-            raise Exception("Mekanik tersebut sudah dibooking pada jam dan tanggal ini.")
+            from fastapi import HTTPException
+            raise HTTPException(status_code=400, detail="Mekanik tersebut sudah dibooking pada jam dan tanggal ini.")
     else:
         total_mechanics = db.query(models.Mechanic).count()
         busy = db.query(models.Booking).filter(
@@ -168,9 +204,12 @@ def create_booking(db: Session, booking: schemas.BookingCreate):
             models.Booking.status != "CANCELLED"
         ).count()
         if busy >= total_mechanics:
-            raise Exception("Semua mekanik sedang sibuk pada jam dan tanggal ini.")
+            from fastapi import HTTPException
+            raise HTTPException(status_code=400, detail="Semua mekanik sedang sibuk pada jam dan tanggal ini.")
 
-    booking_code = f"FIX-{datetime.now().year}-{str(db.query(models.Booking).count() + 1).zfill(4)}"
+    from sqlalchemy import func
+    max_id = db.query(func.max(models.Booking.id)).scalar() or 0
+    booking_code = f"FIX-{datetime.now().year}-{str(max_id + 1).zfill(4)}"
     
     # Extract serviceIds
     booking_dict = booking.model_dump()
@@ -229,7 +268,7 @@ def create_service_log(db: Session, log: schemas.ServiceLogCreate):
 
 # --- Invoices ---
 def get_invoices(db: Session, skip: int = 0, limit: int = 100):
-    return db.query(models.Invoice).offset(skip).limit(limit).all()
+    return db.query(models.Invoice).order_by(models.Invoice.id.desc()).offset(skip).limit(limit).all()
 
 def get_invoice(db: Session, invoice_id: int):
     return db.query(models.Invoice).filter(models.Invoice.id == invoice_id).first()
@@ -251,8 +290,9 @@ def create_invoice(db: Session, invoice: schemas.InvoiceCreate):
     tax = total_cost * 0.1
     grand_total = total_cost + tax
 
-    count = db.query(models.Invoice).count()
-    invoice_number = f"INV-{datetime.now().year}-{str(count + 1).zfill(4)}"
+    from sqlalchemy import func
+    max_id = db.query(func.max(models.Invoice.id)).scalar() or 0
+    invoice_number = f"INV-{datetime.now().year}-{str(max_id + 1).zfill(4)}"
 
     db_invoice = models.Invoice(
         invoiceNumber=invoice_number,
