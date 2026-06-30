@@ -81,15 +81,15 @@ export default function BookingsListClient({ bookings }: { bookings: any[] }) {
             <div className="table-wrapper mb-4">
               <table className="table"><thead><tr><th>Layanan</th><th>Harga</th></tr></thead><tbody>
                 {(detail.bookingServices || []).map((bs: any) => (<tr key={bs.id}><td>{bs.service?.name}</td><td>Rp {bs.priceAtBooking.toLocaleString("id-ID")}</td></tr>))}
-                <tr><td style={{ fontWeight: 700 }}>Total</td><td style={{ fontWeight: 700, color: "var(--accent)" }}>Rp {detail.bookingServices.reduce((s: number, bs: any) => s + bs.priceAtBooking, 0).toLocaleString("id-ID")}</td></tr>
+                <tr><td style={{ fontWeight: 700 }}>Total</td><td style={{ fontWeight: 700, color: "var(--accent)" }}>Rp {(detail.bookingServices || []).reduce((s: number, bs: any) => s + bs.priceAtBooking, 0).toLocaleString("id-ID")}</td></tr>
               </tbody></table>
             </div>
-            {detail.serviceLogs.length > 0 && (<><h4 style={{ marginBottom: "8px", fontSize: "14px" }}>Log Pengerjaan</h4><div className="table-wrapper mb-4"><table className="table"><thead><tr><th>Waktu</th><th>Deskripsi</th><th>Part</th><th>Status</th></tr></thead><tbody>
-              {(detail.serviceLogs || []).map((sl: any) => (<tr key={sl.id}><td style={{ fontSize: "12px" }}>{new Date(sl.logDate).toLocaleString("id-ID")}</td><td>{sl.description}</td><td>{sl.sparepart ? `${sl.sparepart.name} (x${sl.sparepartQty})` : "-"}</td><td><span className={`badge badge-${sl.status === "DONE" ? "completed" : "progress"}`}>{sl.status}</span></td></tr>))}
+            {detail.serviceLogs && detail.serviceLogs.length > 0 && (<><h4 style={{ marginBottom: "8px", fontSize: "14px" }}>Log Pengerjaan</h4><div className="table-wrapper mb-4"><table className="table"><thead><tr><th>Waktu</th><th>Deskripsi</th><th>Part</th><th>Status</th></tr></thead><tbody>
+              {(detail.serviceLogs || []).map((sl: any) => (<tr key={sl.id}><td style={{ fontSize: "12px" }}>{new Date(sl.logDate).toLocaleString("id-ID")}</td><td>{sl.description}</td><td>{sl.sparepart ? <>{sl.sparepart.name} (x{sl.sparepartQty})<br/><span style={{fontSize:"11px", color:"var(--text-muted)"}}>@ Rp {sl.sparepart.price.toLocaleString("id-ID")}</span></> : "-"}</td><td><span className={`badge badge-${sl.status === "DONE" ? "completed" : "progress"}`}>{sl.status}</span></td></tr>))}
             </tbody></table></div></>)}
             {detail.invoice && (
               <div style={{ background: "rgba(16,185,129,0.08)", padding: "16px", borderRadius: "var(--radius-sm)", marginBottom: "16px" }}>
-                <div className="flex justify-between"><span>Invoice: {detail.invoice.invoiceNumber}</span><span className={`badge badge-${detail.invoice.paymentStatus.toLowerCase()}`}>{detail.invoice.paymentStatus}</span></div>
+                <div className="flex justify-between"><span>Invoice: {detail.invoice.invoiceNumber}</span><span className={`badge badge-${(detail.invoice.paymentStatus || "UNPAID").toLowerCase()}`}>{detail.invoice.paymentStatus || "UNPAID"}</span></div>
                 <div style={{ fontSize: "20px", fontWeight: 800, color: "var(--accent)", marginTop: "8px" }}>Rp {detail.invoice.grandTotal.toLocaleString("id-ID")}</div>
               </div>
             )}

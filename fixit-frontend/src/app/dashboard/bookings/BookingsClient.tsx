@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { updateBookingStatus } from "@/actions/bookings";
-import { generateInvoice } from "@/actions/admin";
+import { generateInvoice, createServiceLog } from "@/actions/admin";
 import { CalendarCheck, Search, Eye, Check, Play, XCircle, FileText, Plus, X } from "lucide-react";
 import { NotificationProvider, useNotification } from "@/components/NotificationContext";
 
@@ -11,6 +11,7 @@ export default function BookingsClient({ bookings, mechanics, spareparts }: { bo
   const [filter, setFilter] = useState("ALL");
   const [search, setSearch] = useState("");
   const [detail, setDetail] = useState<any>(null);
+  const [showLogForm, setShowLogForm] = useState(false);
   const { showToast, showConfirm } = useNotification();
 
   // Sync modal view when props change (after router.refresh)
@@ -149,30 +150,97 @@ export default function BookingsClient({ bookings, mechanics, spareparts }: { bo
               </table>
             </div>
 
-            {detail.serviceLogs && detail.serviceLogs.length > 0 && (
-              <>
-                <h3 style={{ marginBottom: "12px", fontSize: "15px" }}>Riwayat Pengerjaan</h3>
-                <div className="table-wrapper mb-4">
-                  <table className="table">
-                    <thead><tr><th>Waktu</th><th>Deskripsi</th><th>Part</th><th>Status</th></tr></thead>
-                    <tbody>
-                      {(detail.serviceLogs || []).map((log: any) => (
-                        <tr key={log.id}>
-                          <td style={{fontSize: "12px"}}>{new Date(log.logDate).toLocaleString("id-ID")}</td>
-                          <td>{log.description}</td>
-                          <td>{log.sparepart ? `${log.sparepart.name} (x${log.sparepartQty})` : "-"}</td>
-                          <td><span className={`badge badge-${log.status === "DONE" ? "completed" : "progress"}`}>{log.status}</span></td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </>
+            <div className="flex justify-between items-center mb-2 mt-4">
+              <h3 style={{ fontSize: "15px", margin: 0 }}>Riwayat Pengerjaan</h3>
+              {detail.status === "IN_PROGRESS" && detail.mechanic && (
+                <button className="btn btn-sm btn-primary" onClick={() => setShowLogForm(!showLogForm)}>
+                  <Plus size={14} /> Tambah Log
+                </button>
+              )}
+            </div>
+
+            {showLogForm && (
+              <div style={{ background: "var(--bg-glass)", padding: "16px", borderRadius: "var(--radius-sm)", marginBottom: "16px", border: "1px solid var(--border)" }}>
+                <form action={async (fd) => {
+                  const desc = fd.get("description") as string;
+                  const spId = fd.get("sparepartId") as string;
+                  const qty = Number(fd.get("sparepartQty") || 0);
+                  const status = fd.get("status") as string;
+                  try {
+                    await createServiceLog({
+                      bookingId: detail.id,
+                      mechanicId: detail.mechanicId,
+                      description: desc,
+                      sparepartId: spId ? Number(spId) : undefined,
+                      sparepartQty: qty,
+                      status
+                    });
+                    showToast("Log berhasil ditambahkan", "success");
+                    setShowLogForm(false);
+                    router.refresh();
+                  } catch (e: any) {
+                    showToast(e.message || "Gagal menambahkan log", "error");
+                  }
+                }}>
+                  <div className="form-group">
+                    <label className="form-label">Deskripsi Pekerjaan</label>
+                    <input name="description" className="form-input" placeholder="Misal: Mengganti oli mesin..." required />
+                  </div>
+                  <div className="grid-2">
+                    <div className="form-group">
+                      <label className="form-label">Sparepart (Opsional)</label>
+                      <select name="sparepartId" className="form-input">
+                        <option value="">Tidak ada</option>
+                        {spareparts.map((sp: any) => (
+                          <option key={sp.id} value={sp.id}>{sp.name} - Sisa {sp.stock}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="form-group">
+                      <label className="form-label">Jumlah</label>
+                      <input name="sparepartQty" type="number" min="1" defaultValue="1" className="form-input" />
+                    </div>
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">Status</label>
+                    <select name="status" className="form-input" required>
+                      <option value="IN_PROGRESS">Sedang Dikerjakan</option>
+                      <option value="DONE">Selesai</option>
+                    </select>
+                  </div>
+                  <div className="flex gap-2">
+                    <button type="submit" className="btn btn-primary btn-sm">Simpan Log</button>
+                    <button type="button" className="btn btn-secondary btn-sm" onClick={() => setShowLogForm(false)}>Batal</button>
+                  </div>
+                </form>
+              </div>
             )}
 
+            {(!detail.serviceLogs || detail.serviceLogs.length === 0) && !showLogForm && (
+              <div className="empty-state" style={{ padding: "20px", marginBottom: "16px" }}>
+                <p>Belum ada riwayat pengerjaan.</p>
+              </div>
+            )}
 
+            {detail.serviceLogs && detail.serviceLogs.length > 0 && (
+              <div className="table-wrapper mb-4">
+                <table className="table">
+                  <thead><tr><th>Waktu</th><th>Deskripsi</th><th>Part</th><th>Status</th></tr></thead>
+                  <tbody>
+                    {(detail.serviceLogs || []).map((log: any) => (
+                      <tr key={log.id}>
+                        <td style={{fontSize: "12px"}}>{new Date(log.logDate).toLocaleString("id-ID")}</td>
+                        <td>{log.description}</td>
+                        <td>{log.sparepart ? <>{log.sparepart.name} (x{log.sparepartQty})<br/><span style={{fontSize:"11px", color:"var(--text-muted)"}}>@ Rp {log.sparepart.price.toLocaleString("id-ID")}</span></> : "-"}</td>
+                        <td><span className={`badge badge-${log.status === "DONE" ? "completed" : "progress"}`}>{log.status}</span></td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
 
-            <button className="btn btn-secondary" onClick={() => setDetail(null)}>Tutup</button>
+            <button className="btn btn-secondary" onClick={() => {setDetail(null); setShowLogForm(false);}}>Tutup</button>
           </div>
         </div>
       )}

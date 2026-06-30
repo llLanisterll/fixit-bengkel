@@ -19,13 +19,4 @@ def read_service_log(id: int, db: Session = Depends(get_db)):
 
 @router.post("/", response_model=schemas.ServiceLog)
 def create_service_log(obj: schemas.ServiceLogCreate, db: Session = Depends(get_db)):
-    return crud.create_service_log(db=db, service_log=obj)
-
-@router.put("/{id}", response_model=schemas.ServiceLog)
-def update_service_log(id: int, obj: schemas.ServiceLogCreate, db: Session = Depends(get_db)):
-    return crud.update_service_log(db=db, service_log_id=id, service_log=obj)
-
-@router.delete("/{id}")
-def delete_service_log(id: int, db: Session = Depends(get_db)):
-    crud.delete_service_log(db=db, service_log_id=id)
-    return {"success": True}
+    return crud.create_service_log(db=db, log=obj)
